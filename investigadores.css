@@ -1,0 +1,127 @@
+/* ESTILOS PÁGINA INVESTIGADORES */
+.page-header-inv { 
+    color: white; 
+    padding: 180px 0 100px; 
+    text-align: center; 
+}
+.page-header-inv h1 { font-size: 3rem; font-weight: 800; }
+
+#investigadores {
+    padding: 60px 0;
+    background-color: #f9fafb;
+}
+
+.investigadores-container {
+    display: grid;
+    grid-template-columns: 1fr; /* Lista de una sola columna para diseño horizontal */
+    gap: 60px;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.investigador-card {
+    background: #ffffff;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+    border-left: 8px solid var(--azul-corp, #600046);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.investigador-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+}
+
+.investigador-info {
+    flex: 1;
+    padding-right: 50px;
+    color: #333;
+    font-size: 1.1rem;
+    line-height: 1.8;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+}
+
+.investigador-info p {
+    margin-bottom: 8px;
+}
+
+.investigador-info strong {
+    font-weight: 700;
+    color: #000;
+}
+
+.inv-nombre strong {
+    font-size: 1.2rem;
+}
+
+.inv-correo a {
+    color: var(--azul-corp, #b30065);
+    text-decoration: none;
+    word-break: break-all;
+}
+
+.inv-correo a:hover {
+    text-decoration: underline;
+}
+
+.investigador-img-container {
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    border: 4px solid var(--rojo-unisinu, #e63946);
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: 0 10px 20px rgba(230, 57, 70, 0.2);
+}
+
+.investigador-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(1.4); /* Aumenta el tamaño para ocultar el círculo interno de la foto */
+}
+
+/* RESPONSIVE INVESTIGADORES */
+@media (max-width: 768px) {
+    .page-header-inv {
+        padding: 120px 0 60px; /* Reduce el padding en móviles */
+    }
+    
+    .page-header-inv h1 {
+        font-size: 2rem; /* Reduce el tamaño del título en móviles */
+    }
+    
+    .investigador-card {
+        flex-direction: column-reverse;
+        text-align: center;
+        background: white;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        border-left: none; /* Quita el borde izquierdo en móviles */
+        border-top: 8px solid var(--azul-corp, #600046); /* Añade borde superior */
+        padding: 30px 20px;
+    }
+    
+    .investigador-info {
+        padding-right: 0;
+        padding-top: 20px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .investigador-img-container {
+        width: 150px;
+        height: 150px;
+        margin: 0 auto 20px auto; /* Centra la imagen y da espacio inferior */
+    }
+    
+    .investigador-card:hover {
+        transform: translateY(-5px);
+    }
+}

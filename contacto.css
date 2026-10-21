@@ -1,0 +1,114 @@
+    .contact-header {
+        background: linear-gradient(135deg, #850000 0%, #d32f2f 100%);
+        padding: 120px 0 60px;
+        color: white;
+        text-align: left;
+    }
+    
+    .contact-header h1 {
+        font-size: 3rem;
+        font-weight: 800;
+        margin-bottom: 10px;
+    }
+
+    .contact-breadcrumb {
+        font-size: 0.9rem;
+        font-weight: 500;
+        opacity: 0.9;
+    }
+
+    .contact-card {
+        background: white;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+    }
+
+    .form-label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 8px;
+    }
+
+    .form-control-corp {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #e1e1e1;
+        border-radius: 6px;
+        font-family: 'Montserrat', sans-serif;
+        font-size: 0.9rem;
+        color: #555;
+        transition: 0.3s;
+        background-color: #f9f9f9;
+    }
+
+    .form-control-corp:focus {
+        border-color: #d32f2f;
+        outline: none;
+        background-color: white;
+    }
+
+    .btn-send-request {
+        background-color: #850000;
+        color: white;
+        border: none;
+        padding: 15px 35px;
+        border-radius: 8px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        cursor: pointer;
+        transition: 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 0.9rem;
+    }
+
+    .btn-send-request:hover {
+        background-color: #b71c1c;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(133, 0, 0, 0.3);
+    }
+
+    .info-item {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 35px;
+        align-items: flex-start;
+    }
+
+    .info-icon-circle {
+        width: 55px;
+        height: 55px;
+        border-radius: 50%;
+        border: 2px solid #d32f2f;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #d32f2f;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+    }
+
+    .info-text h4 {
+        color: #333;
+        font-weight: 700;
+        margin-bottom: 5px;
+        font-size: 1.1rem;
+    }
+
+    .info-text p {
+        color: #666;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    .schedule-box {
+        margin-top: 40px;
+        padding-top: 30px;
+        border-top: 1px solid #eee;
+    }

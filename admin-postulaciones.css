@@ -1,0 +1,230 @@
+
+/* Estilos para la página de gestión de postulaciones */
+
+.admin-postulaciones {
+    padding-top: 120px;
+    background: #f4f7f6;
+    min-height: 100vh;
+}
+
+.admin-postulaciones .header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.admin-postulaciones .page-title {
+    color: #1a2a3a;
+    font-weight: 800;
+    font-size: 1.8rem;
+}
+
+.admin-postulaciones .page-title i {
+    margin-right: 10px;
+    color: #e63946;
+}
+
+.admin-postulaciones .toggle-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-left: auto;
+    margin-right: 20px;
+}
+
+.admin-postulaciones .toggle-label {
+    font-weight: bold;
+    font-size: 1rem;
+    transition: color 0.3s;
+}
+
+.admin-postulaciones .custom-toggle {
+    width: 50px;
+    height: 26px;
+    border-radius: 26px;
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+    background-color: #333;
+}
+
+.admin-postulaciones .toggle-circle {
+    width: 20px;
+    height: 20px;
+    background-color: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    transition: transform 0.3s;
+    transform: translateX(0);
+}
+
+.admin-postulaciones .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.admin-postulaciones .section-title {
+    color: #1a2a3a;
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+.admin-postulaciones .section-title i {
+    margin-right: 10px;
+    color: #3498db;
+}
+
+.admin-postulaciones .btn-export {
+    background: #27ae60;
+}
+
+.admin-postulaciones .table-container {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    overflow: hidden;
+    margin-bottom: 50px;
+}
+
+.admin-postulaciones .table-wrapper {
+    padding: 0;
+    overflow-x: auto;
+}
+
+.admin-postulaciones .postulaciones-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 700px;
+    font-size: 0.85rem;
+}
+
+.admin-postulaciones .postulaciones-table thead tr {
+    background: #1a2a3a;
+    color: white;
+}
+
+.admin-postulaciones .postulaciones-table th,
+.admin-postulaciones .postulaciones-table td {
+    padding: 12px 15px;
+    text-align: left;
+}
+
+.admin-postulaciones .postulaciones-table tbody tr {
+    border-bottom: 1px solid #eee;
+}
+
+.admin-postulaciones .student-name {
+    color: #333;
+}
+
+.admin-postulaciones .student-name strong {
+    display: block;
+}
+
+.admin-postulaciones .student-name small {
+    color: #777;
+}
+
+.admin-postulaciones .program-name {
+    color: #333;
+}
+
+.admin-postulaciones .data-cell {
+    color: #555;
+}
+
+.admin-postulaciones .date-cell {
+    color: #777;
+}
+
+.admin-postulaciones .btn-small {
+    padding: 4px 8px;
+    font-size: 0.7rem;
+}
+
+.admin-postulaciones .estado-badge {
+    color: white;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    display: inline-block;
+}
+
+.admin-postulaciones .estado-pendiente_ori { background: #f1c40f; }
+.admin-postulaciones .estado-espera_ori { background: #e67e22; }
+.admin-postulaciones .estado-candidato { background: #3498db; }
+.admin-postulaciones .estado-aprobado_jefe,
+.admin-postulaciones .estado-aprobado_ori { background: #2ecc71; }
+.admin-postulaciones .estado-rechazado_ori,
+.admin-postulaciones .estado-rechazado_jefe { background: #e74c3c; }
+
+.admin-postulaciones .estado-form {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.admin-postulaciones .estado-select {
+    padding: 4px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    font-size: 0.7rem;
+}
+
+.admin-postulaciones .hidden-detail {
+    display: none;
+}
+
+/* Estilos para el toggle entre estudiantes y docentes */
+#section-estudiantes {
+    display: block;
+}
+
+#section-docentes {
+    display: none;
+}
+
+html.show-docentes-tab #section-estudiantes {
+    display: none !important;
+}
+
+html.show-docentes-tab #section-docentes {
+    display: block !important;
+}
+
+html.show-docentes-tab #custom-toggle {
+    background-color: #f07167 !important;
+}
+
+html.show-docentes-tab #toggle-circle {
+    transform: translateX(24px) !important;
+}
+
+html.show-docentes-tab #label-estudiantes {
+    color: #aaa !important;
+}
+
+html.show-docentes-tab #label-docentes {
+    color: #e63946 !important;
+}
+
+#label-estudiantes {
+    color: #1a2a3a;
+}
+
+#label-docentes {
+    color: #aaa;
+}

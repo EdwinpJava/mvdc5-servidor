@@ -1,0 +1,6 @@
+/* ESTILOS PRIVACIDAD */
+/* Usa principalmente estilos de base.css (SECTIONS, text-highlight, etc.) */
+.text-highlight {
+    color: var(--azul-corp);
+    font-weight: 800;
+}

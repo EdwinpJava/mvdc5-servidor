@@ -1,0 +1,118 @@
+/* --- PÁGINA RECUPERAR DATOS --- */
+.recover-layout { display: flex; gap: 30px; align-items: flex-start; }
+.sidebar-login {
+    width: 280px; background: white; padding: 20px; border-radius: 5px;
+    border: 1px solid #eee; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+.sidebar-header { background: var(--azul-corp); color: white; padding: 10px; text-align: center; border-radius: 4px 4px 0 0; font-weight: 700; font-size: 0.9rem; }
+.sidebar-body { padding: 15px 0; }
+.mini-input { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; }
+.btn-mini { width: 100%; background: var(--rojo-unisinu); color: white; border: none; padding: 8px; border-radius: 4px; font-weight: 700; cursor: pointer; }
+
+.main-recover-area { flex: 1; background: white; padding: 40px; border: 1px solid #eee; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); }
+.recover-intro { text-align: center; margin-bottom: 30px; }
+.recover-intro h2 { color: var(--azul-corp); font-weight: 700; font-size: 1.8rem; margin-bottom: 10px; }
+.recover-intro p { color: #666; line-height: 1.6; max-width: 600px; margin: 0 auto; }
+
+.recover-box {
+    padding: 0; border: none; background: transparent; max-width: 650px; margin: 0 auto;
+}
+.recover-header {
+    font-size: 1.8rem; font-weight: 800; color: var(--azul-corp); margin-bottom: 25px;
+    text-align: center; position: relative; padding-bottom: 15px;
+}
+.recover-header::after {
+    content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 60px; height: 4px; background: var(--rojo-unisinu); border-radius: 2px;
+}
+
+.note-box {
+    background: #fff9db; border: 1px solid #fff3bf; border-left: 5px solid #fcc419;
+    padding: 15px 20px; border-radius: 8px; margin-bottom: 30px; display: flex;
+    align-items: center; gap: 15px; color: #856404;
+}
+.note-box i { font-size: 1.4rem; }
+.note-box p { margin: 0; font-size: 0.9rem; line-height: 1.4; }
+
+.method-selector { margin-bottom: 30px; }
+.method-label {
+    display: block; font-weight: 700; color: #444; margin-bottom: 15px;
+    text-align: center; font-size: 0.95rem;
+}
+.tabs-container {
+    display: flex; background: #f1f3f5; padding: 5px; border-radius: 10px;
+    gap: 5px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+}
+.tab-btn {
+    flex: 1; border: none; padding: 12px; border-radius: 8px; background: transparent;
+    color: #666; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    font-size: 0.9rem;
+}
+.tab-btn i { font-size: 1.1rem; }
+.tab-btn.active { background: white; color: var(--azul-corp); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+.tab-btn:hover:not(.active) { background: rgba(255,255,255,0.5); }
+
+.form-wrapper { position: relative; min-height: 200px; }
+.recovery-form {
+    display: none; opacity: 0; transform: translateY(10px);
+    transition: all 0.4s ease; background: #fff; padding: 25px;
+    border-radius: 12px; border: 1px solid #eee; box-shadow: 0 5px 20px rgba(0,0,0,0.02);
+}
+.recovery-form.active { display: block; opacity: 1; transform: translateY(0); }
+
+.input-group { margin-bottom: 25px; }
+.input-group label {
+    display: block; font-weight: 700; color: #444; margin-bottom: 10px;
+    font-size: 0.9rem;
+}
+.input-with-icon { position: relative; }
+.input-with-icon i {
+    position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
+    color: #adb5bd; transition: color 0.3s ease;
+}
+.input-with-icon input {
+    width: 100%; padding: 14px 15px 14px 45px; border: 2px solid #e9ecef;
+    border-radius: 8px; font-size: 1rem; transition: all 0.3s ease; outline: none;
+}
+.input-with-icon input:focus { border-color: var(--azul-corp); box-shadow: 0 0 0 4px rgba(0, 56, 118, 0.1); }
+.input-with-icon input:focus + i { color: var(--azul-corp); }
+
+.btn-submit {
+    width: 100%; background: var(--rojo-unisinu); color: white; border: none;
+    padding: 16px; border-radius: 8px; font-weight: 700; cursor: pointer;
+    transition: all 0.3s ease; display: flex; align-items: center;
+    justify-content: center; gap: 12px; font-size: 1rem; letter-spacing: 0.5px;
+}
+.btn-submit:hover { background: #b01a1a; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(188, 28, 28, 0.3); }
+.btn-submit:active { transform: translateY(0); }
+
+/* RESPONSIVE RECUPERAR DATOS */
+@media (max-width: 992px) {
+    .recover-layout { gap: 20px; }
+    .main-recover-area { padding: 30px; }
+}
+
+@media (max-width: 768px) {
+    .recover-layout { flex-direction: column; }
+    .sidebar-login { width: 100%; order: 2; }
+    .main-recover-area { width: 100%; order: 1; padding: 25px 20px; }
+    
+    .main-recover-area h2 { font-size: 1.5rem !important; text-align: center; }
+    .main-recover-area p { font-size: 0.95rem; text-align: center; }
+    
+    .recover-header { font-size: 1.4rem; }
+    
+    .tabs-container { flex-direction: column; }
+    .tab-btn { width: 100%; }
+    
+    .recovery-form { padding: 20px 15px; }
+    
+    .note-box { flex-direction: column; text-align: center; padding: 15px; }
+    .note-box i { margin-bottom: 10px; }
+}
+
+@media (max-width: 480px) {
+    .main-recover-area { padding: 20px 15px; }
+    .btn-submit { padding: 14px; font-size: 0.9rem; }
+}
