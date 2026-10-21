@@ -1,0 +1,20 @@
+[Unit]
+Description=Servidor Web - Movilidad del Conocimiento Unisinú
+After=network.target
+
+[Service]
+# Ruta al directorio del proyecto (cámbiala según tu instalación)
+WorkingDirectory=/ruta/a/tu/proyecto/verano cientifico
+# Ruta al entorno virtual (si usas uno)
+Environment="PATH=/ruta/a/tu/proyecto/venv/bin"
+# Comando de inicio
+ExecStart=/ruta/a/tu/proyecto/venv/bin/gunicorn --workers 4 --threads 4 --timeout 120 --bind 0.0.0.0:5000 app:app
+# Reiniciar siempre que se caiga
+Restart=always
+RestartSec=10
+# Usuario que ejecuta el servicio
+User=tu_usuario
+Group=tu_grupo
+
+[Install]
+WantedBy=multi-user.target

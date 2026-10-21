@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='contacto.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="contact-header">
+    <div class="container">
+        <h1 data-i18n="contact-title">Centro de Contacto</h1>
+        <p class="contact-breadcrumb" data-i18n="contact-breadcrumb">Inicio / De Interés / Contacto</p>
+    </div>
+</section>
+
+<section class="section-padding" style="background-color: #fff;">
+    <div class="container">
+        <div style="display: flex; flex-wrap: wrap; gap: 80px;">
+            
+            <!-- Columna Formulario -->
+            <div style="flex: 1.5; min-width: 350px;">
+                <h2 style="color: #333; font-weight: 800; margin-bottom: 20px; font-size: 1.8rem;" data-i18n="contact-form-title">Envíenos un mensaje</h2>
+                <p style="color: #666; margin-bottom: 40px; line-height: 1.6;" data-i18n="contact-form-desc">
+                    Complete el siguiente formulario. Los campos marcados son obligatorios para el trámite de su solicitud.
+                </p>
+
+                <form action="{{ url_for('enviar_contacto') }}" method="POST">
+                    <div class="form-grid-reg" style="margin-bottom: 25px;">
+                        <div>
+                            <label class="form-label" data-i18n="contact-label-name">Nombre Completo</label>
+                            <input type="text" name="nombre" class="form-control-corp" placeholder="Ingrese su nombre" required data-i18n-placeholder="contact-placeholder-name">
+                        </div>
+                        <div>
+                            <label class="form-label" data-i18n="contact-label-email">Correo Electrónico</label>
+                            <input type="email" name="email" class="form-control-corp" placeholder="ejemplo@correo.com" required data-i18n-placeholder="contact-placeholder-email">
+                        </div>
+                    </div>
+
+                    <div class="form-grid-reg" style="margin-bottom: 25px;">
+                        <div>
+                            <label class="form-label" data-i18n="contact-label-type">Tipo de Usuario</label>
+                            <select name="tipo_usuario" class="form-control-corp" required>
+                                <option value="" data-i18n="contact-opt-select">Seleccione...</option>
+                                <option value="estudiante" data-i18n="contact-opt-est">Estudiante</option>
+                                <option value="docente" data-i18n="contact-opt-doc">Docente Investigador</option>
+                                <option value="administrativo" data-i18n="contact-opt-adm">Administrativo</option>
+                                <option value="externo" data-i18n="contact-opt-ext">Externo</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label" data-i18n="contact-label-subject">Asunto</label>
+                            <input type="text" name="asunto" class="form-control-corp" placeholder="Motivo de consulta" required data-i18n-placeholder="contact-placeholder-subject">
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 35px;">
+                        <label class="form-label" data-i18n="contact-label-message">Mensaje Detallado</label>
+                        <textarea name="mensaje" class="form-control-corp" rows="6" placeholder="Escriba su mensaje aquí..." required data-i18n-placeholder="contact-placeholder-message"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-send-request">
+                        <span data-i18n="contact-btn-send">ENVIAR SOLICITUD</span> <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Columna Información -->
+            <div style="flex: 1; min-width: 300px;">
+                <h3 style="color: #333; font-weight: 800; margin-bottom: 35px; font-size: 1.4rem;" data-i18n="contact-info-title">Oficina de Atención</h3>
+
+                <div class="info-item">
+                    <div class="info-icon-circle">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div class="info-text">
+                        <h4 data-i18n="contact-info-addr-title">Sede Administrativa</h4>
+                        <p data-i18n="contact-info-addr-desc"><a href="https://www.google.com/maps/search/?api=1&query=Universidad+del+Sinú+Sede+Santillana+Cartagena" target="_blank" style="color: inherit; text-decoration: none;">Av. Al Bosque Transversal 54 No. 30-453, Santillana.</a></p>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-icon-circle">
+                        <i class="fas fa-phone-alt"></i>
+                    </div>
+                    <div class="info-text">
+                        <h4 data-i18n="contact-info-phone-title">Línea Directa</h4>
+                        <p>(604) 781-2000 Ext. 125</p>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-icon-circle" style="background-color: #25d366; color: white;">
+                        <i class="fab fa-whatsapp"></i>
+                    </div>
+                    <div class="info-text">
+                        <h4>WhatsApp</h4>
+                        <p><a href="https://wa.me/573153228453" target="_blank" style="color: inherit; text-decoration: none;">+57 315 322 8453</a></p>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-icon-circle">
+                        <i class="fas fa-at"></i>
+                    </div>
+                    <div class="info-text">
+                        <h4 data-i18n="contact-info-digital-title">Canales Digitales</h4>
+                        <p>investigaciones@unisinu.edu.co</p>
+                    </div>
+                </div>
+
+                <div class="schedule-box">
+                    <h4 style="color: #333; font-weight: 800; margin-bottom: 15px; font-size: 1.1rem;" data-i18n="contact-schedule-title">Horario de Atención</h4>
+                    <p style="color: #666; font-size: 0.95rem; line-height: 1.6;">
+                        <i class="far fa-clock" style="color: #d32f2f; margin-right: 8px;"></i> <strong data-i18n="contact-schedule-days">Lunes a Viernes</strong><br>
+                        8:00 AM - 12:00 PM<br>
+                        2:00 PM - 6:00 PM
+                    </p>
+                </div>
+
+                <!-- Mapa Interactivo -->
+                <div class="map-container" style="margin-top: 30px; border-radius: 15px; overflow: hidden; box-shadow: var(--shadow-soft);">
+                    <iframe 
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3924.367064433145!2d-75.48514192415132!3d10.392765766185834!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8ef62590219f852d%3A0x6a1f0f0f0f0f0f0f!2sUniversidad+del+Sin%C3%BA+Sede+Santillana!5e0!3m2!1ses!2sco!4v1714400000000!5m2!1ses!2sco" 
+                        width="100%" 
+                        height="300" 
+                        style="border:0;" 
+                        allowfullscreen="" 
+                        loading="lazy" 
+                        referrerpolicy="no-referrer-when-downgrade">
+                    </iframe>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='investigadores.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="page-header-inv" style="background-image: linear-gradient(rgba(128, 20, 40, 0.75), rgba(128, 20, 40, 0.75)), url('{{ url_for('static', filename='img/cartagena.png') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
+    <div class="container">
+        <h1 data-i18n="inv-title">Investigadores</h1>
+        <p class="page-breadcrumb" data-i18n="inv-breadcrumb">Inicio / Investigadores</p>
+    </div>
+</section>
+
+<section id="investigadores"> 
+    <div class="investigadores-container"></div> 
+</section>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const investigadores = [ 
+        { 
+            nombre: "Diofanor Acevedo Correa", 
+            lineas: ["Tecnología de Alimentos"], 
+            especialidad: "Alimentos", 
+            correo: "diofanor3000@gmail.com", 
+            modalidad: "Presencial", 
+            imagen: "{{ url_for('static', filename='img/Diofa.png') }}" 
+        }, 
+        { 
+            nombre: "Jean Carlos Atencio Altamiranda", 
+            lineas: ["Procedimientos terapéuticos e intervenciones nutricionales"], 
+            especialidad: "", 
+            correo: "investigacionnut@unisinucartagena.edu.co", 
+            modalidad: "Presencial", 
+            imagen: "{{ url_for('static', filename='img/jean_carlos.png') }}" 
+        }, 
+        { 
+            nombre: "Ana Beatriz Martínez Medrano", 
+            lineas: ["Innovación y gestión integral de procesos agroindustriales"], 
+            especialidad: "Gestión de la calidad, procesos agroindustriales", 
+            correo: "kellys.fontalvo@unisinu.edu.co", 
+            modalidad: "Presencial", 
+            imagen: "{{ url_for('static', filename='img/ana.png') }}" 
+        }, 
+        { 
+            nombre: "Sandra Viviana Cáceres Matta", 
+            lineas: [ 
+            "Sostenibilidad Ambiental", 
+            "Promoción y educación en salud", 
+            "Bioquímica y Biología Celular", 
+            "Ortopedia Maxilar", 
+            "Integridad Científica", 
+            "Oncológica", 
+            "Odontopediatría", 
+            "Diferencias congénitas craneofaciales", 
+            "Procedimientos terapéuticos e intervenciones nutricionales" 
+            ], 
+            especialidad: "Salud, Bioquímica, Salud Pública", 
+            correo: "investigacionnut@unisinucartagena.edu.co", 
+            modalidad: "Presencial", 
+            imagen: "{{ url_for('static', filename='img/sandra.png') }}" 
+        }, 
+        { 
+            nombre: "Irina Patricia Tirado Ballestas", 
+            lineas: [ 
+            "Ciencias ambientales", 
+            "Farmacología experimental", 
+            "Ensayos ecotoxicológicos", 
+            "Microbiología" 
+            ], 
+            especialidad: "Microbiología, Toxicología ambiental, Farmacología", 
+            correo: "tiradoroa2129@gmail.com", 
+            modalidad: "Presencial", 
+            imagen: "{{ url_for('static', filename='img/irina.png') }}" 
+        }, 
+        { 
+            nombre: "Keny Lorena España Pion", 
+            lineas: ["Gestión y cuidado de enfermería"], 
+            especialidad: "Gestión de la calidad y administración", 
+            correo: "keny.espana@unisinu.edu.co", 
+            modalidad: "Presencial", 
+            imagen: "{{ url_for('static', filename='img/keni.png') }}" 
+        }, 
+        { 
+            nombre: "Mercedes de Alba Romero", 
+            lineas: ["Cuidado al individuo y al colectivo"], 
+            especialidad: "Salud familiar y comunitaria", 
+            correo: "Internalenfermeria@unisinucartagena.edu.co", 
+            modalidad: "Presencial", 
+            imagen: "{{ url_for('static', filename='img/mercedes.png') }}" 
+        }, 
+        { 
+            nombre: "Kellys Johana Fontalvo Durango", 
+            lineas: ["Administración - Salud Pública"], 
+            especialidad: "Administración - Salud Pública", 
+            correo: "kellys.fontalvo@unisinu.edu.co", 
+            modalidad: "Presencial", 
+            imagen: "{{ url_for('static', filename='img/kellys.png') }}" 
+        }, 
+        { 
+            nombre: "Shirli Lucia Hernández Martínez", 
+            lineas: ["Contable - financiera - tributaria"], 
+            especialidad: "Contable - financiera – tributaria", 
+            correo: "shirli.hernandez@unisinu.edu.co", 
+            modalidad: "Presencial", 
+            imagen: "{{ url_for('static', filename='img/shirly.png') }}" 
+        }, 
+        { 
+            nombre: "Cielo Ester Marriaga González", 
+            lineas: ["Logística y comercio internacional", "Tecnología (Blockchain)"], 
+            especialidad: "Administración, Blockchain", 
+            correo: "investigacionindustrial@unisinucartagena.edu.co", 
+            modalidad: "Presencial", 
+            imagen: "{{ url_for('static', filename='img/cielo.png') }}" 
+        }, 
+        { 
+            nombre: "Bleidis Vanessa Quintana Pérez", 
+            lineas: ["Sociedad y conflicto"], 
+            especialidad: "Derechos humanos", 
+            correo: "bvannesaq@unisinucartagena.edu.co", 
+            modalidad: "Presencial", 
+            imagen: "{{ url_for('static', filename='img/vanessa.png') }}" 
+        }, 
+        { 
+            nombre: "Elizabeth Ramírez Llerena", 
+            lineas: ["Sociedad y conflicto"], 
+            especialidad: "Humanística", 
+            correo: "elizabethramirezllerena@gmail.com", 
+            modalidad: "Presencial", 
+            imagen: "{{ url_for('static', filename='img/elizabeth.png') }}" 
+        }, 
+        { 
+            nombre: "Patricia Romero Murillo", 
+            lineas: ["Ecología y Desarrollo Sostenible", "Biotecnología"], 
+            especialidad: "Contaminación marina, residuos de pesca", 
+            correo: "patricia.romero@unisinu.edu.co", 
+            modalidad: "Presencial", 
+            imagen: "{{ url_for('static', filename='img/patricia.png') }}" 
+        }, 
+        { 
+            nombre: "Luis Schneider Palomino", 
+            lineas: ["Competitividad y productividad"], 
+            especialidad: "Competitividad, emprendimiento, innovación", 
+            correo: "coordinvestigacioneani@unisinucartagena.edu.co", 
+            modalidad: "Presencial", 
+            imagen: "{{ url_for('static', filename='img/luis.png') }}" 
+        }, 
+        { 
+            nombre: "Luz Yineth Zúñiga Vega", 
+            lineas: ["Auditoría, sostenibilidad, finanzas"], 
+            especialidad: "Auditoría y finanzas", 
+            correo: "coordintcontaduria@unisinucartagena.edu.co", 
+            modalidad: "Presencial", 
+            imagen: "{{ url_for('static', filename='img/luz zuñiga.png') }}" 
+        }, 
+        { 
+            nombre: "María Claudia Bonfante Rodríguez", 
+            lineas: ["Ingeniería de Software", "Inteligencia Artificial"], 
+            especialidad: "Procesos, requerimientos, IA", 
+            correo: "mbonfanter@gmail.com", 
+            modalidad: "Virtual", 
+            imagen: "{{ url_for('static', filename='img/maria.png') }}" 
+        }, 
+        { 
+            nombre: "Julian Patrick Manrique Mclean", 
+            lineas: ["Ciencia y tecnología"], 
+            especialidad: "Gestión tecnológica en salud", 
+            correo: "jpmanriquemclean@hotmail.com", 
+            modalidad: "Virtual", 
+            imagen: "{{ url_for('static', filename='img/julian.png') }}" 
+        } 
+    ]; 
+
+    const container = document.querySelector('.investigadores-container');
+    
+    investigadores.forEach(inv => {
+        // Usa imagen o placeholder con iniciales si está vacío
+        const imgSrc = inv.imagen && inv.imagen.trim() !== "" 
+            ? inv.imagen 
+            : `https://ui-avatars.com/api/?name=${encodeURIComponent(inv.nombre)}&background=random&color=fff&size=200&font-size=0.33`;
+
+        const card = document.createElement('div');
+        card.className = 'investigador-card reveal';
+        
+        const lineasHtml = inv.lineas.join(', ');
+        const especialidadHtml = inv.especialidad ? inv.especialidad : 'No especificada';
+
+        card.innerHTML = `
+            <div class="investigador-info">
+                <p class="inv-nombre"><strong>Investigador:</strong> ${inv.nombre}</p>
+                <p class="inv-lineas"><strong>Línea de Investigación:</strong> ${lineasHtml}</p>
+                <p class="inv-especialidad"><strong>Área de especialización:</strong> ${especialidadHtml}</p>
+                <p class="inv-correo"><strong>Correo:</strong> <a href="mailto:${inv.correo}">${inv.correo}</a></p>
+                <p class="inv-modalidad"><strong>Modalidad:</strong> ${inv.modalidad}</p>
+            </div>
+            <div class="investigador-img-container">
+                <img src="${imgSrc}" alt="${inv.nombre}" class="investigador-img" loading="lazy">
+            </div>
+        `;
+        
+        container.appendChild(card);
+    });
+});
+</script>
+{% endblock %} 

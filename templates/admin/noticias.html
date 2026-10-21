@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="admin-section" style="padding-top: 120px; background: #f4f7f6; min-height: 100vh;">
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; flex-wrap: wrap; gap: 15px;">
+            <h1 style="color: #1a2a3a; font-weight: 800; font-size: 1.8rem;"><i class="fas fa-newspaper" style="margin-right: 10px; color: #e63946;"></i> Gestión de Noticias ORI</h1>
+            <div class="admin-nav" style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <a href="{{ url_for('admin_nueva_noticia') }}" class="btn-admin-add">+ Nueva Noticia</a>
+                <a href="{{ url_for('coordinador_dashboard') }}" class="btn-admin-nav">Volver al Panel</a>
+            </div>
+        </div>
+
+        <div style="background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); overflow: hidden;">
+            <div style="padding: 0; overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; min-width: 700px;">
+                    <thead>
+                        <tr style="background: #1a2a3a; color: white;">
+                            <th style="padding: 20px 30px; text-align: left;">Título de la Noticia</th>
+                            <th style="padding: 20px 30px; text-align: left;">Fecha de Publicación</th>
+                            <th style="padding: 20px 30px; text-align: center;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if noticias %}
+                            {% for noticia in noticias %}
+                            <tr style="border-bottom: 1px solid #eee;">
+                                <td style="padding: 20px 30px; color: #333;"><strong>{{ noticia.titulo }}</strong></td>
+                                <td style="padding: 20px 30px; color: #777;">{{ noticia.fecha.strftime('%d/%m/%Y %H:%M') }}</td>
+                                <td style="padding: 20px 30px; display: flex; gap: 10px; align-items: center; justify-content: center;">
+                                    <a href="{{ url_for('admin_editar_noticia', id=noticia.id) }}" class="btn-admin-edit">Editar</a>
+                                    <form action="{{ url_for('admin_eliminar_noticia', id=noticia.id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta noticia?');" style="margin: 0;">
+                                        <button type="submit" class="btn-admin-delete">Eliminar</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="4" style="padding: 50px; text-align: center; color: #777;">
+                                    <i class="fas fa-newspaper" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.2;"></i>
+                                    <p>No hay noticias publicadas todavía.</p>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

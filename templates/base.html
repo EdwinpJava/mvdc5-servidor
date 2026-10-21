@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movilidad del conocimiento | Unisinú</title>
+    
+    <!-- 5. Meta Tags para Redes Sociales -->
+    <meta name="description" content="Portal de Movilidad del Conocimiento de la Universidad del Sinú. Innovación y excelencia académica global.">
+    <meta property="og:title" content="Movilidad del Conocimiento | Unisinú">
+    <meta property="og:description" content="Explora oportunidades de intercambio científico y académico global.">
+    <meta property="og:image" content="{{ url_for('static', filename='img/logo.png', _external=True) }}">
+    <meta property="og:type" content="website">
+    
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='base.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Establecer un nombre para la ventana/pestaña actual.
+        // Esto permite que los enlaces desde el correo (con target="movilidad_ventana")
+        // reutilicen esta misma pestaña en lugar de abrir una nueva.
+        window.name = "movilidad_ventana";
+        window.homeUrl = "{{ url_for('inicio') }}";
+    </script>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <nav class="navbar" id="mainNav">
+        <div class="nav-container">
+            <div class="brand-zone" style="cursor: pointer;" id="brandZone">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" class="main-logo" alt="Logo Unisinú" id="mainLogo">
+                <div class="brand-text">
+                    {% if session.get('user_id') %}
+                        <span data-i18n="brand-movilidad">MOVILIDAD</span>
+                    {% else %}
+                        <span data-i18n="brand-verano">MOVILIDAD</span> <span class="light" data-i18n="brand-cientifico">DEL CONOCIMIENTO</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="menu-toggle" id="mobile-menu">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+
+            <div class="nav-right-group">
+                <ul class="nav-links">
+                    {% if not session.get('user_id') %}
+                        <!-- Menú Público (Landing) -->
+                        <li><a href="{{ url_for('inicio') }}#inicio" class="nav-item" data-i18n="nav-inicio">Inicio</a></li>
+                        <li><a href="{{ url_for('investigadores') }}" class="nav-item" data-i18n="nav-investigadores">Investigadores</a></li>
+                    {% else %}
+                        <!-- Menú Privado (Plataforma) -->
+                        {% if session.get('rol') == 'coordinador_ori' %}
+                            <li><a href="{{ url_for('coordinador_dashboard') }}" class="nav-item {% if request.endpoint == 'coordinador_dashboard' %}active{% endif %}">Movilidad ORI</a></li>
+                            <li><a href="{{ url_for('admin_noticias') }}" class="nav-item {% if request.endpoint == 'admin_noticias' %}active{% endif %}">Noticias ORI</a></li>
+                        {% elif session.get('rol') == 'coordinador_area' %}
+                            <li><a href="{{ url_for('jefe_dashboard') }}" class="nav-item {% if request.endpoint == 'jefe_dashboard' %}active{% endif %}">Panel Coordinador</a></li>
+                            <li><a href="{{ url_for('dashboard') }}" class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}" data-i18n="nav-dashboard">Mi Movilidad</a></li>
+                        {% elif session.get('rol') == 'superadmin' %}
+                            <li><a href="{{ url_for('superadmin_dashboard') }}" class="nav-item {% if request.endpoint == 'superadmin_dashboard' %}active{% endif %}">Panel Admin</a></li>
+                        {% else %}
+                            <li><a href="{{ url_for('dashboard') }}" class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}" data-i18n="nav-dashboard">Mi Movilidad</a></li>
+                        {% endif %}
+                        <li><a href="{{ url_for('noticias_publicas') }}" class="nav-item {% if request.endpoint == 'noticias_publicas' %}active{% endif %}">Noticias</a></li>
+                        {% if session.get('rol') in ['estudiante', 'docente', 'coordinador_area'] %}
+                            <li><a href="{{ url_for('programas') }}" class="nav-item {% if request.endpoint == 'programas' or request.endpoint == 'detalle_programa' %}active{% endif %}" data-i18n="nav-programas">Programas</a></li>
+                        {% endif %}
+                        
+                        <li><a href="{{ url_for('perfil') }}" class="nav-item {% if request.endpoint == 'perfil' %}active{% endif %}" data-i18n="nav-perfil">Mi Perfil</a></li>
+                    {% endif %}
+                    
+                    {% if not nombre %}
+                    <li><a href="javascript:void(0)" id="openModalBtn" class="nav-item" data-i18n="nav-ingresar">Ingresar</a></li>
+                    {% endif %}
+
+                    {% if nombre %}
+                    <li>
+                        <div class="user-badge fade-in" style="display: flex; align-items: center; gap: 8px;">
+                            {% if session.get('foto_perfil') %}
+                                <img src="{{ url_for('static', filename=session.get('foto_perfil')) }}?v={{ range(1, 100000) | random }}" alt="Perfil" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                            {% else %}
+                                <i class="fas fa-user-circle" style="font-size: 24px; color: white;"></i>
+                            {% endif %}
+                            <span><span data-i18n="nav-hola">Hola</span>, <strong>{{ nombre }}</strong></span>
+                        </div>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            {% for category, message in messages %}
+                Swal.fire({
+                    icon: '{{ "success" if category == "success" else "error" if category == "error" else "info" }}',
+                    title: '{{ "¡Éxito!" if category == "success" else "Atención" }}',
+                    html: `{{ message|safe }}`,
+                    timer: {% if 'VALIDAR CORREO AHORA' in message %}0{% else %}5000{% endif %},
+                    timerProgressBar: {% if 'VALIDAR CORREO AHORA' in message %}false{% else %}true{% endif %},
+                    showConfirmButton: {% if 'VALIDAR CORREO AHORA' in message %}true{% else %}false{% endif %},
+                    confirmButtonColor: '#850000',
+                    toast: {% if 'VALIDAR CORREO AHORA' in message %}false{% else %}true{% endif %},
+                    position: '{% if 'VALIDAR CORREO AHORA' in message %}center{% else %}top-end{% endif %}'
+                });
+            {% endfor %}
+        });
+        </script>
+    {% endif %}
+    {% endwith %}
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    {% if not (request.endpoint != 'inicio' and session.get('user_id')) %}
+    <footer class="main-footer">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div class="footer-brand-section">
+                    <img src="{{ url_for('static', filename='img/logo.png') }}" class="footer-logo" alt="Logo Unisinú">
+                    <h2>UNISINÚ</h2>
+                    <p data-i18n="footer-desc">La Universidad del Sinú - Elías Bechara Zainúm, es una Institución de educación superior sujeta a inspección y vigilancia por el Ministerio de Educación Nacional.</p>
+                    <div class="social-links">
+                        <a href="https://www.facebook.com/unisinu.ca" target="_blank" rel="noopener noreferrer"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://x.com/unisinuctg" target="_blank" rel="noopener noreferrer"><i class="fab fa-twitter"></i></a>
+                        <a href="https://www.instagram.com/unisinucartagena/" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-nav-section">
+                    <h3 data-i18n="footer-inst">Institucional</h3>
+                    <ul>
+                        <li><a href="https://unisinucartagena.edu.co/" target="_blank" rel="noopener noreferrer" data-i18n="footer-quienes">Quiénes somos</a></li>
+                        <!-- Equipo editorial oculto -->
+                        <li style="display: none;"><a href="{{ url_for('equipo_editorial') }}" data-i18n="footer-equipo">Equipo editorial</a></li>
+                        <li><a href="javascript:void(0)" id="openPrivacyModal" data-i18n="footer-aviso">Aviso de Privacidad</a></li>
+                        <li><a href="{{ url_for('investigadores') }}" data-i18n="footer-portal">Investigadores</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-nav-section">
+                    <h3 data-i18n="footer-contact">Contacto</h3>
+                    <ul class="contact-info-footer">
+                        <li><i class="fas fa-map-marker-alt"></i> <a href="https://www.google.com/maps/search/?api=1&query=Universidad+del+Sinú+Sede+Santillana+Cartagena" target="_blank" style="color: inherit; text-decoration: none;">Av. Al Bosque Transversal 54 No. 30-453, Santillana.</a></li>
+                        <li><i class="fab fa-whatsapp"></i> <a href="https://wa.me/573153228453" target="_blank" style="color: inherit; text-decoration: none;">+57 315 322 8453</a></li>
+                        <li><i class="fas fa-envelope"></i> <a href="mailto:relinternacionales@unisinucartagena.edu.co" style="color: inherit; text-decoration: none;">relinternacionales@unisinucartagena.edu.co</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <div class="copyright" data-i18n="footer-rights">
+                    &copy; 2026 Universidad del Sinú.
+                </div>
+            </div>
+        </div>
+    </footer>
+    {% endif %}
+
+    <div id="authModal" class="modal-overlay">
+        <div class="modal-container corporate">
+            <button class="close-modal" id="closeModal">&times;</button>
+            <div class="modal-side enterprise-bg">
+                <div class="side-overlay">
+                    <img src="{{ url_for('static', filename='img/logo.png') }}" class="modal-logo-inner" alt="Logo Unisinú">
+                    <h3 data-i18n="login-portal-title">Portal de Movilidad</h3>
+                    <p>Acceda a la red global de excelencia académica.</p>
+                </div>
+            </div>
+
+            <div class="modal-form-area">
+                <div id="loginForm" class="form-wrapper">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <span class="top-tag" data-i18n="login-top-tag">Acceso al Portal</span>
+                        <h2 data-i18n="login-title" style="margin-top: 10px;">Iniciar Sesión</h2>
+                    </div>
+                    <form action="{{ url_for('login') }}" method="POST" class="corp-form">
+                        <div class="input-group">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" name="email" placeholder="Correo Electrónico" data-i18n-placeholder="login-placeholder-email" required>
+                        </div>
+                        <div class="input-group">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" name="password" placeholder="Contraseña" data-i18n-placeholder="login-placeholder-pass" required>
+                        </div>
+                        <div style="text-align: right; margin-top: -10px; margin-bottom: 15px;">
+                            <a href="{{ url_for('recuperar_datos') }}" class="forgot-password" data-i18n="login-forgot">¿Olvidó su contraseña?</a>
+                        </div>
+                        <button type="submit" class="btn-submit-corp" data-i18n="login-btn">AUTENTICAR</button>
+                    </form>
+                    <p class="form-switch"><span data-i18n="login-switch-text">¿No tiene cuenta?</span> <a href="javascript:void(0)" id="showRegisterModal" data-i18n="login-switch-link">Regístrese aquí</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nuevo modal de registro separado -->
+    <div id="registerModal" class="modal-overlay">
+        <div class="modal-container corporate register-modal-container"> <!-- Modal ajustado sin imagen -->
+            <button class="close-modal" id="closeRegisterModal">&times;</button>
+
+            <div class="modal-form-area register-form-area">
+                <div id="registerForm" class="form-wrapper">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <span class="top-tag" data-i18n="reg-top-tag">Nuevo Registro</span>
+                        <h2 data-i18n="reg-title" style="margin-top: 10px;">Crear Cuenta</h2>
+                    </div>
+                    <form action="{{ url_for('registro') }}" method="POST" class="corp-form" id="form-registro" onsubmit="return validarPasswordRegistro(event)">
+                        <div class="role-selector" id="roleSelectorRegistro">
+                            <label><input type="radio" name="role" value="estudiante" {% if register_role == 'estudiante' or not register_role %}checked{% endif %}> <span>Estudiante</span></label>
+                            <label><input type="radio" name="role" value="docente" {% if register_role == 'docente' %}checked{% endif %}> <span>Docente</span></label>
+                            <label><input type="radio" name="role" value="coordinador_ori" {% if register_role == 'coordinador_ori' %}checked{% endif %}> <span>Coordinador ORI</span></label>
+                            <label><input type="radio" name="role" value="coordinador_area" {% if register_role == 'coordinador_area' %}checked{% endif %}> <span>Coordinador de Area</span></label>
+                        </div>
+                        <div class="form-grid-reg">
+                            <div class="input-group">
+                                <i class="fas fa-user"></i>
+                                <input type="text" name="nombre_reg" placeholder="Nombre Completo" data-i18n-placeholder="reg-placeholder-name" required>
+                            </div>
+                            <div class="input-group">
+                                <i class="fas fa-envelope"></i>
+                                <input type="email" name="email_reg" placeholder="Correo Electrónico" data-i18n-placeholder="reg-placeholder-email" required>
+                            </div>
+                            <div class="input-group" id="reg-universidad-group">
+                                <i class="fas fa-university"></i>
+                                <input type="text" name="universidad" placeholder="Universidad" data-i18n-placeholder="reg-placeholder-uni">
+                            </div>
+                            <div class="input-group" id="reg-carrera-group" style="display: flex; position: relative; align-items: center;">
+                                <i class="fas fa-graduation-cap"></i>
+                                <select name="carrera" id="carrera-select" required style="border: none; outline: none; width: 100%; -webkit-appearance: none; -moz-appearance: none; appearance: none; background: transparent; cursor: pointer; color: #757575;">
+                                    <option value="" disabled selected data-i18n-placeholder="reg-placeholder-career" id="carrera-placeholder">Seleccione su Programa</option>
+                                    <!-- Options will be populated dynamically by static/main.js based on role -->
+                                </select>
+                                <i class="fas fa-chevron-down" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%);"></i>
+                            </div>
+                        </div>
+                        <div class="input-group" style="margin-top: 15px;">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" name="password_reg" placeholder="Contraseña (mín. 6 caracteres)" data-i18n-placeholder="reg-placeholder-pass" required minlength="6">
+                        </div>
+                        <button type="submit" class="btn-submit-corp" data-i18n="reg-btn" style="margin-top: 20px;">REGISTRARSE</button>
+                    </form>
+                    <p class="form-switch"><span data-i18n="reg-switch-text">¿Ya es miembro?</span> <a href="javascript:void(0)" id="showLoginModal" data-i18n="reg-switch-link">Inicie Sesión</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para contraseña de registro especial -->
+    <div id="passwordRegistroModal" class="modal-privacy">
+        <div class="modal-privacy-content" style="max-width: 500px;">
+            <div class="modal-privacy-header">
+                <h2>ACCESO <span class="text-highlight">ESPECIAL</span></h2>
+                <span id="closePasswordRegistroModal" class="close-modal">&times;</span>
+            </div>
+            <div class="modal-privacy-body">
+                <div class="privacy-info">
+                    <p class="subtitle">Ingrese la contraseña para continuar con el registro</p>
+                    <form action="{{ url_for('validar_registro_especial') }}" method="POST" style="margin-top: 30px;">
+                        <input type="hidden" name="rol" id="rolRegistroEspecial" value="">
+                        <div style="margin-bottom: 25px;">
+                            <input 
+                                type="password" 
+                                name="password_registro_especial" 
+                                placeholder="Contraseña" 
+                                required
+                                style="width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px; font-family: inherit;"
+                            >
+                        </div>
+                        <button 
+                            type="submit" 
+                            style="width: 100%; padding: 15px; background: #850000; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.3s;"
+                            onmouseover="this.style.background='#a80000'"
+                            onmouseout="this.style.background='#850000'"
+                        >
+                            CONTINUAR
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function validarPasswordRegistro(event) {
+        const form = document.getElementById('form-registro');
+        const passwordInput = form.querySelector('input[name="password_reg"]');
+        const password = passwordInput.value;
+        
+        let errores = [];
+        
+        if (password.length < 8) {
+            errores.push("Al menos 8 caracteres.");
+        }
+        if (!/[A-Z]/.test(password)) {
+            errores.push("Al menos una letra mayúscula.");
+        }
+        if (!/[a-z]/.test(password)) {
+            errores.push("Al menos una letra minúscula.");
+        }
+        if (!/\d/.test(password)) {
+            errores.push("Al menos un número.");
+        }
+        if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+            errores.push("Al menos un carácter especial (!@#$%^&*...).");
+        }
+        
+        if (errores.length > 0) {
+            event.preventDefault(); // Evita que se envíe el formulario
+            
+            // Mostrar alerta de SweetAlert sin recargar la página
+            Swal.fire({
+                icon: 'error',
+                title: 'Contraseña insegura',
+                html: '<p>La contraseña debe cumplir con lo siguiente:</p><ul style="text-align: left;"><li>' + errores.join('</li><li>') + '</li></ul>',
+                confirmButtonColor: '#850000',
+                target: document.getElementById('registerModal') // Hace que el SweetAlert aparezca sobre el modal
+            });
+            
+            return false;
+        }
+        
+        return true;
+    }
+    </script>
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+    <script src="/static/unisinu_core.js"></script>
+    
+    {% if auto_open_register %}
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const registerModal = document.getElementById("registerModal");
+            if(registerModal) registerModal.classList.add("open");
+        });
+    </script>
+    {% endif %}
+
+    {% if session.get('user_id') %}
+    <script>
+        // Timeout de inactividad de 15 minutos (900000 ms)
+        let inactivityTime = function () {
+            let time;
+            window.onload = resetTimer;
+            document.onmousemove = resetTimer;
+            document.onkeypress = resetTimer;
+            document.ontouchstart = resetTimer;
+            document.onclick = resetTimer;
+            document.onscroll = resetTimer;
+
+            function logout() {
+                window.location.href = "{{ url_for('logout') }}";
+            }
+
+            function resetTimer() {
+                clearTimeout(time);
+                time = setTimeout(logout, 900000); // 15 minutos
+            }
+        };
+        inactivityTime();
+    </script>
+    {% endif %}
+    <!-- Modal Aviso de Privacidad -->
+    <div id="privacyModal" class="modal-privacy">
+        <div class="modal-privacy-content">
+            <div class="modal-privacy-header">
+                <h2 data-i18n="priv-title">Política de <span class="text-highlight">Privacidad</span></h2>
+                <span id="closePrivacyModal" class="close-modal">&times;</span>
+            </div>
+            <div class="modal-privacy-body">
+                <div class="privacy-info">
+                    <p class="subtitle" data-i18n="priv-subtitle">Comprometidos con la protección de su información personal.</p>
+                    
+                    <h3 data-i18n="priv-sec-1-title">1. Tratamiento de Datos</h3>
+                    <p data-i18n="priv-sec-1-desc">Sus datos personales son tratados conforme a las leyes nacionales vigentes, garantizando su confidencialidad y uso exclusivo para fines académicos y administrativos.</p>
+
+                    <h3 data-i18n="priv-sec-2-title">2. Finalidad de la Información</h3>
+                    <p data-i18n="priv-sec-2-desc">La información recolectada se utiliza para:</p>
+                    <ul>
+                        <li data-i18n="priv-sec-2-item-1">Gestión de postulaciones a programas.</li>
+                        <li data-i18n="priv-sec-2-item-2">Comunicación de eventos y convocatorias.</li>
+                        <li data-i18n="priv-sec-2-item-3">Seguimiento académico de los participantes.</li>
+                        <li data-i18n="priv-sec-2-item-4">Estadísticas del programa anónimas.</li>
+                    </ul>
+
+                    <h3 data-i18n="priv-sec-3-title">3. Derechos del Titular</h3>
+                    <p data-i18n="priv-sec-3-desc">Usted tiene derecho a conocer, actualizar y rectificar sus datos personales en cualquier momento a través de nuestros canales oficiales.</p>
+
+                    <h3 data-i18n="priv-sec-4-title">4. Seguridad de la Información</h3>
+                    <p data-i18n="priv-sec-4-desc">Implementamos medidas técnicas y administrativas robustas para proteger su información contra acceso no autorizado o pérdida.</p>
+
+                    <h3 data-i18n="priv-sec-5-title">5. Contacto</h3>
+                    <p data-i18n="priv-sec-5-desc">Para dudas sobre el tratamiento de sus datos, puede contactarnos a través de nuestro <a href="{{ url_for('contacto') }}">Centro de Contacto</a>.</p>
+                    
+                    <div class="privacy-acceptance">
+                        <p data-i18n="priv-footer-text">Al utilizar esta plataforma, usted acepta los términos de nuestra política de privacidad.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-privacy-footer">
+                <button id="acceptPrivacyModal" class="btn-ok">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botón Volver Arriba -->
+    <div id="backToTop" class="back-to-top">
+        <i class="fas fa-chevron-up"></i>
+    </div>
+
+    <!-- Unisinu Secret Modal -->
+    <div id="unisinuSecretModal" class="modal-privacy">
+        <div class="modal-privacy-content" id="unisinuSecretContent">
+            <div class="modal-privacy-header">
+                <h2 id="unisinuSecretTitle">??????</h2>
+                <span id="closeUnisinuSecret" class="close-modal">&times;</span>
+            </div>
+            <div class="modal-privacy-body" id="unisinuSecretBody">
+                <div class="privacy-info">
+                    <p class="subtitle" id="unisinuSecretQuestion"></p>
+                    <p id="unisinuSecretTimer" style="text-align: center; font-size: 24px; font-weight: bold; color: #850000; margin-top: 15px; margin-bottom: 15px;"></p>
+                    <div style="margin-top: 30px;">
+                        <input 
+                            type="text" 
+                            id="unisinuSecretInput" 
+                            placeholder="Ingrese la clave..." 
+                            style="width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px; font-family: inherit;"
+                        >
+                    </div>
+                    <p id="unisinuSecretAttempts" style="margin-top: 15px; color: #666; font-size: 14px;"></p>
+                    <button 
+                        id="unisinuSecretSubmit"
+                        style="width: 100%; padding: 15px; background: #850000; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.3s; margin-top: 20px;"
+                        onmouseover="this.style.background='#a80000'"
+                        onmouseout="this.style.background='#850000'"
+                    >
+                        CONTINUAR
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

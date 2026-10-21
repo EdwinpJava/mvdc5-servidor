@@ -1,0 +1,662 @@
+{% extends "base.html" %}
+
+{% block content %}
+<script>
+    // Configurar clase en el body antes de que renderice para evitar parpadeos
+    (function() {
+        let isDoc = localStorage.getItem('activeTabPostulaciones') === 'docentes';
+        if (isDoc) {
+            document.documentElement.classList.add('show-docentes-tab');
+        }
+    })();
+</script>
+
+<style>
+    /* Estilos por defecto (Estudiantes) */
+    #section-estudiantes { display: block; }
+    #section-docentes { display: none; }
+    #custom-toggle { background-color: #333; }
+    #toggle-circle { transform: translateX(0); }
+    #label-estudiantes { color: #1a2a3a; }
+    #label-docentes { color: #aaa; }
+
+    /* Estilos cuando la clase show-docentes-tab está activa (Docentes) */
+    html.show-docentes-tab #section-estudiantes { display: none !important; }
+    html.show-docentes-tab #section-docentes { display: block !important; }
+    html.show-docentes-tab #custom-toggle { background-color: #f07167 !important; }
+    html.show-docentes-tab #toggle-circle { transform: translateX(24px) !important; }
+    html.show-docentes-tab #label-estudiantes { color: #aaa !important; }
+    html.show-docentes-tab #label-docentes { color: #e63946 !important; }
+    
+    /* Prevenir transiciones en la carga inicial */
+    html.preload-tab #custom-toggle,
+    html.preload-tab #toggle-circle,
+    html.preload-tab #label-estudiantes,
+    html.preload-tab #label-docentes {
+        transition: none !important;
+    }
+</style>
+<script>document.documentElement.classList.add('preload-tab');</script>
+
+<section class="admin-section admin-postulaciones" style="padding-top: 120px; background: #f4f7f6; min-height: 120vh; padding-bottom: 50px;">
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; flex-wrap: wrap; gap: 15px;">
+            <h1 style="color: #1a2a3a; font-weight: 800; font-size: 1.8rem;"><i class="fas fa-file-signature" style="margin-right: 10px; color: #e63946;"></i> Gestión de Postulaciones</h1>
+            
+            <!-- Toggle Switch en línea con el título y el botón de volver -->
+            <div style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-left: auto; margin-right: 20px;">
+                <span id="label-estudiantes" style="font-weight: bold; font-size: 1rem; transition: color 0.3s;"><i class="fas fa-user-graduate"></i> Estudiantes</span>
+                
+                <div id="custom-toggle" onclick="toggleTables()" style="width: 50px; height: 26px; border-radius: 26px; position: relative; cursor: pointer; transition: background-color 0.3s; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);">
+                    <div id="toggle-circle" style="width: 20px; height: 20px; background-color: white; border-radius: 50%; position: absolute; top: 3px; left: 3px; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 2px 5px rgba(0,0,0,0.2);"></div>
+                </div>
+                
+                <span id="label-docentes" style="font-weight: bold; font-size: 1rem; transition: color 0.3s;"><i class="fas fa-chalkboard-teacher"></i> Docentes/Admin</span>
+            </div>
+
+            <a href="{{ url_for('coordinador_dashboard') }}" class="btn-admin-nav">Volver al Panel</a>
+        </div>
+
+        <!-- Tabla de Estudiantes -->
+        <div id="section-estudiantes">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                <h2 style="color: #1a2a3a; font-weight: 700; font-size: 1.5rem; margin: 0;"><i class="fas fa-user-graduate" style="margin-right: 10px; color: #3498db;"></i> Postulaciones de Estudiantes</h2>
+                <a href="{{ url_for('exportar_postulaciones_excel', tipo='estudiantes') }}" class="btn-admin-nav" style="background: #27ae60;"><i class="fas fa-file-excel"></i> Exportar a Excel</a>
+            </div>
+            <div style="background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 50px;">
+            <div style="padding: 0; overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; min-width: 700px; font-size: 0.85rem;">
+                    <thead>
+                        <tr style="background: #1a2a3a; color: white;">
+                            <th style="padding: 12px 15px; text-align: left;">Estudiante</th>
+                            <th style="padding: 12px 15px; text-align: left;">Programa</th>
+                            <th style="padding: 12px 15px; text-align: left;">Datos Académicos</th>
+                            <th style="padding: 12px 15px; text-align: left;">Respuestas Formulario</th>
+                            <th style="padding: 12px 15px; text-align: left;">Fecha</th>
+                            <th style="padding: 12px 15px; text-align: left;">Estado</th>
+                            <th style="padding: 12px 15px; text-align: left;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for postu in postulaciones_estudiantes %}
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 12px 15px; color: #333;">
+                                <strong>{{ postu.estudiante.nombre }}</strong><br>
+                                <small style="color: #777;">{{ postu.estudiante.email }}</small>
+                            </td>
+                            <td style="padding: 12px 15px; color: #333;">{{ postu.programa.nombre }}</td>
+                            <td style="padding: 12px 15px; color: #555;">
+                                 <button type="button" onclick="verDatosAcademicos('{{ postu.estudiante.nombre }}', '{{ postu.estudiante.universidad or 'N/A' }}', '{{ postu.estudiante.carrera or 'N/A' }}')" class="btn-admin-view" style="padding: 4px 8px; font-size: 0.7rem;">
+                                     <i class="fas fa-university"></i> Ver Datos
+                                 </button>
+                             </td>
+                            <td style="padding: 12px 15px; color: #555;">
+                                <button type="button" onclick="verDetalles('{{ postu.id }}', '{{ postu.estudiante.nombre|replace("'", "\\'") }}', '{{ postu.estado }}', false)" class="btn-admin-view" style="padding: 4px 8px; font-size: 0.7rem; {% if postu.estado in ['aprobado_jefe', 'rechazado_jefe'] %}background: #7f8c8d;{% endif %}">
+                                    <i class="fas fa-eye"></i> {% if postu.estado in ['aprobado_jefe', 'rechazado_jefe'] %}Respuestas (Solo Lectura){% else %}Ver Respuestas{% endif %}
+                                </button>
+                                <div id="detalles-{{ postu.id }}" style="display: none;">
+                                    {{ postu.datos_formulario_json }}
+                                </div>
+                                <div id="archivos-{{ postu.id }}" style="display: none;">
+                                    {{ postu.archivos_json }}
+                                </div>
+                                <div id="carta-{{ postu.id }}" style="display: none;">
+                                    {{ postu.carta_jefe_url if postu.carta_jefe_url else '' }}
+                                </div>
+                                <div id="obs-jefe-{{ postu.id }}" style="display: none;">
+                                    {{ postu.observacion_jefe if postu.observacion_jefe else '' }}
+                                </div>
+                            </td>
+                            <td style="padding: 12px 15px; color: #777;">{{ postu.fecha_postulacion.strftime('%d/%m/%Y') }}</td>
+                            <td style="padding: 12px 15px;">
+                                <span class="badge-pill" style="
+                                    background: {% if postu.estado == 'pendiente_ori' %}#f1c40f
+                                    {% elif postu.estado == 'espera_ori' %}#e67e22
+                                    {% elif postu.estado == 'candidato' %}#3498db
+                                    {% elif postu.estado in ['aprobado_jefe', 'aprobado_ori'] %}#2ecc71
+                                    {% else %}#e74c3c{% endif %}; 
+                                    color: white; padding: 3px 8px; border-radius: 20px; font-size: 0.65rem; font-weight: 700; display: inline-block; white-space: nowrap; text-align: center; min-width: 60px;">
+                                    {{ postu.estado.replace('_ori', '').replace('_jefe', '').replace('_', ' ').upper() }}
+                                </span>
+                                {% if postu.carta_jefe_url %}
+                                <div style="margin-top: 5px;">
+                                    <a href="javascript:void(0);" onclick="abrirVisorArchivo('{{ postu.carta_jefe_url }}', 'Carta del C.A - {{ postu.estudiante.nombre|replace("'", "\\'") }}')" style="font-size: 0.7rem; color: #2ecc71; text-decoration: none; font-weight: bold; display: flex; align-items: center; gap: 4px;">
+                                        <i class="fas fa-file-signature"></i> Ver Carta
+                                    </a>
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 12px 15px;">
+                                <form action="{{ url_for('coordinador_cambiar_estado_postulacion', id=postu.id) }}" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 4px; min-width: 140px;">
+                                    {% if postu.estado in ['aprobado_jefe', 'rechazado_jefe'] %}
+                                        <div style="background: #f8f9fa; padding: 12px; border-radius: 10px; border: 1px solid #dcdde1; margin-bottom: 8px;">
+                                            <p style="font-size: 0.75rem; color: #2ecc71; font-weight: bold; margin-top: 0; margin-bottom: 10px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                                                <i class="fas fa-check-circle"></i> Aprobado por C.A
+                                            </p>
+                                            
+                                            <div style="display: flex; flex-direction: column; gap: 10px;">
+                                                <!-- Carta ORI 1 -->
+                                                <div style="background: white; padding: 8px; border-radius: 6px; border: 1px solid #eee;">
+                                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                                        <label style="font-size: 0.65rem; color: #333; font-weight: bold; margin: 0;">Carta ORI 1:</label>
+                                                        {% if postu.carta_ori_1_url %}
+                                                            <a href="javascript:void(0);" onclick="abrirVisorArchivo('{{ postu.carta_ori_1_url }}', 'Carta ORI 1 - {{ postu.estudiante.nombre|replace("'", "\\'") }}')" style="font-size: 0.65rem; color: #2ecc71; text-decoration: none; font-weight: bold; display: flex; align-items: center; gap: 4px; background: #e8f8f5; padding: 2px 6px; border-radius: 4px;">
+                                                                <i class="fas fa-eye"></i> Ver
+                                                            </a>
+                                                        {% else %}
+                                                            <span style="font-size: 0.6rem; color: #e74c3c; background: #fdf2e9; padding: 2px 4px; border-radius: 4px; font-weight: bold;">Falta</span>
+                                                        {% endif %}
+                                                    </div>
+                                                    <input type="file" name="carta_ori_1" style="font-size: 0.65rem; width: 100%; border: 1px dashed #ccc; padding: 3px; border-radius: 4px; cursor: pointer; box-sizing: border-box;">
+                                                </div>
+
+                                                <!-- Carta ORI 2 -->
+                                                <div style="background: white; padding: 8px; border-radius: 6px; border: 1px solid #eee;">
+                                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                                        <label style="font-size: 0.65rem; color: #333; font-weight: bold; margin: 0;">Carta ORI 2:</label>
+                                                        {% if postu.carta_ori_2_url %}
+                                                            <a href="javascript:void(0);" onclick="abrirVisorArchivo('{{ postu.carta_ori_2_url }}', 'Carta ORI 2 - {{ postu.estudiante.nombre|replace("'", "\\'") }}')" style="font-size: 0.65rem; color: #2ecc71; text-decoration: none; font-weight: bold; display: flex; align-items: center; gap: 4px; background: #e8f8f5; padding: 2px 6px; border-radius: 4px;">
+                                                                <i class="fas fa-eye"></i> Ver
+                                                            </a>
+                                                        {% else %}
+                                                            <span style="font-size: 0.6rem; color: #e74c3c; background: #fdf2e9; padding: 2px 4px; border-radius: 4px; font-weight: bold;">Falta</span>
+                                                        {% endif %}
+                                                    </div>
+                                                    <input type="file" name="carta_ori_2" style="font-size: 0.65rem; width: 100%; border: 1px dashed #ccc; padding: 3px; border-radius: 4px; cursor: pointer; box-sizing: border-box;">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button type="submit" style="padding: 8px 10px; font-size: 0.75rem; background: #3498db; width: 100%; border-radius: 8px; border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: background 0.3s;" onmouseover="this.style.background='#2980b9'" onmouseout="this.style.background='#3498db'">
+                                            <i class="fas fa-cloud-upload-alt"></i> Guardar Cartas
+                                        </button>
+                                    {% else %}
+                                        <select name="estado" id="estado_{{ postu.id }}" style="padding: 4px; border-radius: 6px; border: 1px solid #ddd; font-size: 0.7rem; background: white; cursor: pointer;">
+                                            <option value="candidato" {% if postu.estado == 'candidato' %}selected{% endif %}>Aprobar como Candidato</option>
+                                            <option value="espera_ori" {% if postu.estado == 'espera_ori' %}selected{% endif %}>En Espera</option>
+                                            <option value="rechazado_ori" {% if postu.estado == 'rechazado_ori' %}selected{% endif %}>Rechazar</option>
+                                        </select>
+                                        
+                                        <input type="hidden" name="comentarios" id="comentarios_{{ postu.id }}" value="{{ postu.comentarios or '' }}">
+                                        
+                                        <button type="button" onclick="abrirModalObs('{{ postu.id }}', '{{ postu.estudiante.nombre }}', '{{ (postu.comentarios or '')|replace("'", "\\'") }}')" 
+                                                class="btn-admin-view" 
+                                                style="padding: 4px 8px; font-size: 0.7rem; background: #e63946; justify-content: center; width: 100%;">
+                                            <i class="fas {% if postu.comentarios %}fa-check-circle{% else %}fa-comment-alt{% endif %}"></i> 
+                                            {% if postu.comentarios %}Observación Lista{% else %}Agregar Observación{% endif %}
+                                        </button>
+                                        
+                                        <button type="submit" class="btn-admin-update" style="padding: 4px 8px; font-size: 0.7rem;">Actualizar</button>
+                                    {% endif %}
+                                </form>
+                                <form action="{{ url_for('coordinador_eliminar_postulacion', id=postu.id) }}" method="POST" style="margin-top: 5px;" onsubmit="return confirm('¿Está seguro de que desea eliminar permanentemente la postulación de {{ postu.estudiante.nombre }}?')">
+                                    <button type="submit" class="btn-admin-delete">
+                                        <i class="fas fa-trash-alt"></i> Eliminar
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" style="padding: 30px; text-align: center; color: #777;">No hay postulaciones de estudiantes.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        </div>
+
+<!-- Tabla de Docentes -->
+        <div id="section-docentes" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                <h2 style="color: #1a2a3a; font-weight: 700; font-size: 1.5rem; margin: 0;"><i class="fas fa-chalkboard-teacher" style="margin-right: 10px; color: #3498db;"></i> Postulaciones de Docentes/Admin</h2>
+                <a href="{{ url_for('exportar_postulaciones_excel', tipo='docentes') }}" class="btn-admin-nav" style="background: #27ae60;"><i class="fas fa-file-excel"></i> Exportar a Excel</a>
+            </div>
+            <div style="background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 50px;">
+            <div style="padding: 0; overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; min-width: 700px; font-size: 0.85rem;">
+                    <thead>
+                        <tr style="background: #1a2a3a; color: white;">
+                            <th style="padding: 12px 15px; text-align: left;">Docente</th>
+                            <th style="padding: 12px 15px; text-align: left;">Programa</th>
+                            <th style="padding: 12px 15px; text-align: left;">Datos Académicos</th>
+                            <th style="padding: 12px 15px; text-align: left;">Respuestas Formulario</th>
+                            <th style="padding: 12px 15px; text-align: left;">Fecha</th>
+                            <th style="padding: 12px 15px; text-align: left;">Estado</th>
+                            <th style="padding: 12px 15px; text-align: left;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for postu in postulaciones_docentes %}
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 12px 15px; color: #333;">
+                                <strong>{{ postu.estudiante.nombre }}</strong><br>
+                                <small style="color: #777;">{{ postu.estudiante.email }}</small>
+                            </td>
+                            <td style="padding: 12px 15px; color: #333;">{{ postu.programa.nombre }}</td>
+                            <td style="padding: 12px 15px; color: #555;">
+                                 <button type="button" onclick="verDatosAcademicos('{{ postu.estudiante.nombre }}', '{{ postu.estudiante.universidad or 'N/A' }}', '{{ postu.estudiante.carrera or 'N/A' }}')" class="btn-admin-view" style="padding: 4px 8px; font-size: 0.7rem;">
+                                     <i class="fas fa-university"></i> Ver Datos
+                                 </button>
+                             </td>
+                            <td style="padding: 12px 15px; color: #555;">
+                                <button type="button" onclick="verDetalles('{{ postu.id }}', '{{ postu.estudiante.nombre|replace("'", "\\'") }}', '{{ postu.estado }}', true)" class="btn-admin-view" style="padding: 4px 8px; font-size: 0.7rem;">
+                                    <i class="fas fa-eye"></i> Ver Respuestas
+                                </button>
+                                <div id="detalles-{{ postu.id }}" style="display: none;">
+                                    {{ postu.datos_formulario_json }}
+                                </div>
+                                <div id="archivos-{{ postu.id }}" style="display: none;">
+                                    {{ postu.archivos_json }}
+                                </div>
+                                <div id="carta-{{ postu.id }}" style="display: none;">
+                                    {{ postu.carta_jefe_url if postu.carta_jefe_url else '' }}
+                                </div>
+                                <div id="obs-jefe-{{ postu.id }}" style="display: none;">
+                                    {{ postu.observacion_jefe if postu.observacion_jefe else '' }}
+                                </div>
+                            </td>
+                            <td style="padding: 12px 15px; color: #777;">{{ postu.fecha_postulacion.strftime('%d/%m/%Y') }}</td>
+                            <td style="padding: 12px 15px;">
+                                <span class="badge-pill" style="
+                                    background: {% if postu.estado == 'pendiente_ori' %}#f1c40f
+                                    {% elif postu.estado == 'espera_ori' %}#e67e22
+                                    {% elif postu.estado == 'candidato' %}#3498db
+                                    {% elif postu.estado in ['aprobado_jefe', 'aprobado_ori'] %}#2ecc71
+                                    {% else %}#e74c3c{% endif %}; 
+                                    color: white; padding: 3px 8px; border-radius: 20px; font-size: 0.65rem; font-weight: 700; display: inline-block; white-space: nowrap; text-align: center; min-width: 60px;">
+                                    {{ postu.estado.replace('_ori', '').replace('_jefe', '').replace('_', ' ').upper() }}
+                                </span>
+                            </td>
+                            <td style="padding: 12px 15px;">
+                                <form action="{{ url_for('coordinador_cambiar_estado_postulacion', id=postu.id) }}" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 4px; min-width: 140px;">
+                                    <select name="estado" id="estado_{{ postu.id }}" style="padding: 4px; border-radius: 6px; border: 1px solid #ddd; font-size: 0.7rem; background: white; cursor: pointer;">
+                                        <option value="aprobado_ori" {% if postu.estado == 'aprobado_ori' %}selected{% endif %}>Aprobado</option>
+                                        <option value="espera_ori" {% if postu.estado == 'espera_ori' %}selected{% endif %}>En Espera</option>
+                                        <option value="rechazado_ori" {% if postu.estado == 'rechazado_ori' %}selected{% endif %}>Rechazar</option>
+                                    </select>
+                                    
+                                    <input type="hidden" name="comentarios" id="comentarios_{{ postu.id }}" value="{{ postu.comentarios or '' }}">
+                                    
+                                    <button type="button" onclick="abrirModalObs('{{ postu.id }}', '{{ postu.estudiante.nombre }}', '{{ (postu.comentarios or '')|replace("'", "\\'") }}')" 
+                                            class="btn-admin-view" 
+                                            style="padding: 4px 8px; font-size: 0.7rem; background: #e63946; justify-content: center; width: 100%; margin-bottom: 4px;">
+                                        <i class="fas {% if postu.comentarios %}fa-check-circle{% else %}fa-comment-alt{% endif %}"></i> 
+                                        {% if postu.comentarios %}Observación Lista{% else %}Agregar Observación{% endif %}
+                                    </button>
+
+                                    {% if postu.estado == 'aprobado_ori' %}
+                                        <div style="background: #f8f9fa; padding: 8px; border-radius: 6px; border: 1px solid #dcdde1; margin-bottom: 8px;">
+                                            <p style="font-size: 0.7rem; color: #2ecc71; font-weight: bold; margin-top: 0; margin-bottom: 6px; text-align: center;">
+                                                <i class="fas fa-file-upload"></i> Carta Aprobación
+                                            </p>
+                                            {% if postu.carta_ori_1_url %}
+                                                <div style="margin-bottom: 6px; text-align: center;">
+                                                    <a href="javascript:void(0);" onclick="abrirVisorArchivo('{{ postu.carta_ori_1_url }}', 'Carta Aprobación - {{ postu.estudiante.nombre|replace("'", "\\'") }}')" style="font-size: 0.65rem; color: #2ecc71; text-decoration: none; font-weight: bold; display: inline-flex; align-items: center; gap: 4px; background: #e8f8f5; padding: 2px 6px; border-radius: 4px;">
+                                                        <i class="fas fa-eye"></i> Ver Carta Actual
+                                                    </a>
+                                                </div>
+                                            {% endif %}
+                                            <input type="file" name="carta_ori_1" style="font-size: 0.6rem; width: 100%; border: 1px dashed #ccc; padding: 3px; border-radius: 4px; cursor: pointer; box-sizing: border-box;">
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <button type="submit" class="btn-admin-update" style="padding: 4px 8px; font-size: 0.7rem;">Actualizar</button>
+                                </form>
+                                <form action="{{ url_for('coordinador_eliminar_postulacion', id=postu.id) }}" method="POST" style="margin-top: 5px;" onsubmit="return confirm('¿Está seguro de que desea eliminar permanentemente la postulación de {{ postu.estudiante.nombre }}?')">
+                                    <button type="submit" class="btn-admin-delete">
+                                        <i class="fas fa-trash-alt"></i> Eliminar
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" style="padding: 30px; text-align: center; color: #777;">No hay postulaciones de docentes/admin.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    /* CSS para ocultar las tablas por defecto hasta que el JS decida cual mostrar */
+    /* Este bloque ya no es necesario porque los estilos están en el head */
+</style>
+<script>
+// Obtener el estado inicial de localStorage
+let isDocentes = localStorage.getItem('activeTabPostulaciones') === 'docentes';
+
+// Función para inicializar las tablas sin transiciones al cargar la página
+function initTables() {
+    // El estado inicial ya se aplicó al <html> en el <head>
+    
+    // Quitar la clase preload después de un pequeño retraso para habilitar transiciones
+    setTimeout(() => {
+        document.documentElement.classList.remove('preload-tab');
+    }, 50);
+}
+
+function toggleTables() {
+    // Alternar el estado
+    isDocentes = !isDocentes;
+    localStorage.setItem('activeTabPostulaciones', isDocentes ? 'docentes' : 'estudiantes');
+    
+    // Aplicar clase
+    if (isDocentes) {
+        document.documentElement.classList.add('show-docentes-tab');
+    } else {
+        document.documentElement.classList.remove('show-docentes-tab');
+    }
+}
+
+// Ejecutar inmediatamente
+initTables();
+
+// También asegurar al cargar el DOM por si acaso
+document.addEventListener('DOMContentLoaded', initTables);
+</script>
+
+<!-- Modal para ver detalles -->
+<div id="modal-detalles" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center; padding: 20px;">
+    <div style="background: white; width: 100%; max-width: 600px; border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.2); overflow: hidden; position: relative; max-height: 90vh; display: flex; flex-direction: column;">
+        <div style="background: #1a2a3a; color: white; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="margin: 0; font-size: 1.2rem;"><i class="fas fa-clipboard-list" style="margin-right: 10px;"></i> Respuestas del Formulario</h2>
+            <button onclick="cerrarModal()" style="background: transparent; border: none; color: white; font-size: 1.5rem; cursor: pointer;">&times;</button>
+        </div>
+        <div id="modal-content-area" style="padding: 30px; overflow-y: auto;">
+            <!-- Contenido dinámico -->
+        </div>
+    </div>
+</div>
+
+<!-- Modal para agregar observación -->
+<div id="modal-observacion" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center; padding: 20px;">
+    <div style="background: white; width: 100%; max-width: 500px; border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.2); overflow: hidden; position: relative;">
+        <div style="background: #1a2a3a; color: white; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="margin: 0; font-size: 1.2rem;"><i class="fas fa-comment-alt" style="margin-right: 10px;"></i> Agregar Observación</h2>
+            <button onclick="cerrarModalObs()" style="background: transparent; border: none; color: white; font-size: 1.5rem; cursor: pointer;">&times;</button>
+        </div>
+        <div style="padding: 30px;">
+            <p id="obs-estudiante-nombre" style="font-weight: bold; color: #1a2a3a; margin-bottom: 15px;"></p>
+            <textarea id="obs-text-area" placeholder="Escriba aquí su observación..." style="width: 100%; padding: 15px; border-radius: 10px; border: 1px solid #ddd; font-size: 0.9rem; resize: vertical; min-height: 120px; margin-bottom: 20px;"></textarea>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button onclick="cerrarModalObs()" style="padding: 10px 20px; border-radius: 8px; border: 1px solid #ddd; background: #f8f9fa; cursor: pointer; font-weight: 600;">Cancelar</button>
+                <button onclick="guardarObservacion()" style="padding: 10px 20px; border-radius: 8px; border: none; background: #e63946; color: white; cursor: pointer; font-weight: 600;">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para ver archivos PDF/Imágenes -->
+<div id="modal-visor-archivo" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; justify-content: center; align-items: center; padding: 20px;">
+    <div style="background: white; width: 100%; max-width: 900px; border-radius: 15px; box-shadow: 0 15px 40px rgba(0,0,0,0.3); overflow: hidden; position: relative; height: 85vh; display: flex; flex-direction: column;">
+        <div style="background: #1a2a3a; color: white; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="margin: 0; font-size: 1.1rem;" id="visor-titulo"><i class="fas fa-file-alt" style="margin-right: 10px;"></i> Visor de Archivo</h2>
+            <button onclick="cerrarVisorArchivo()" style="background: transparent; border: none; color: white; font-size: 1.5rem; cursor: pointer;">&times;</button>
+        </div>
+        <div style="flex: 1; padding: 0; background: #f5f5f5;">
+            <iframe id="visor-iframe" src="" style="width: 100%; height: 100%; border: none;"></iframe>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentPostuId = null;
+
+    function abrirVisorArchivo(url, titulo) {
+        document.getElementById('visor-titulo').innerHTML = `<i class="fas fa-file-alt" style="margin-right: 10px;"></i> ${titulo}`;
+        document.getElementById('visor-iframe').src = url;
+        document.getElementById('modal-visor-archivo').style.display = 'flex';
+    }
+
+    function cerrarVisorArchivo() {
+        document.getElementById('modal-visor-archivo').style.display = 'none';
+        document.getElementById('visor-iframe').src = '';
+    }
+
+    function abrirModalObs(id, nombre, comentarioActual) {
+        currentPostuId = id;
+        document.getElementById('obs-estudiante-nombre').textContent = "Postulante: " + nombre;
+        document.getElementById('obs-text-area').value = comentarioActual;
+        document.getElementById('modal-observacion').style.display = 'flex';
+    }
+
+    function cerrarModalObs() {
+        document.getElementById('modal-observacion').style.display = 'none';
+        currentPostuId = null;
+    }
+
+    function guardarObservacion() {
+        if (currentPostuId) {
+            const obsValue = document.getElementById('obs-text-area').value;
+            document.getElementById('comentarios_' + currentPostuId).value = obsValue;
+            
+            // Cambiar apariencia del botón para indicar que hay observación
+            const btn = document.querySelector(`button[onclick="abrirModalObs('${currentPostuId}', '${document.getElementById('obs-estudiante-nombre').textContent.replace('Estudiante: ', '')}', '${obsValue.replace(/'/g, "\\'")}')"]`);
+            if (btn) {
+                if (obsValue.trim() !== '') {
+                    btn.innerHTML = '<i class="fas fa-check-circle"></i> Observación Lista';
+                    btn.style.background = '#e63946';
+                } else {
+                    btn.innerHTML = '<i class="fas fa-comment-alt"></i> Agregar Observación';
+                    btn.style.background = '#e63946';
+                }
+            }
+            
+            cerrarModalObs();
+        }
+    }
+
+    function verDetalles(id, nombre, estado, isDocente) {
+        window.currentModalPostuId = id;
+        window.currentModalPostuNombre = nombre;
+        
+        // El coordinador ORI siempre puede ver la checklist interactiva para docentes
+        const isReadonly = !isDocente && (estado === 'aprobado_jefe' || estado === 'rechazado_jefe' || estado === 'aprobado_ori' || estado === 'rechazado_ori');
+        
+        const modal = document.getElementById('modal-detalles');
+        const content = document.getElementById('modal-content-area');
+        
+        const datosRaw = document.getElementById(`detalles-${id}`).textContent;
+        const archivosRaw = document.getElementById(`archivos-${id}`).textContent;
+        const cartaRaw = document.getElementById(`carta-${id}`).textContent.trim();
+        const obsJefeRaw = document.getElementById(`obs-jefe-${id}`).textContent.trim();
+        
+        let html = '';
+        
+        if (cartaRaw || obsJefeRaw) {
+            html += '<div style="margin-bottom: 25px; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px;"><h3 style="color: #2ecc71; margin: 0; font-size: 1.1rem;"><i class="fas fa-check-circle"></i> Decisión del Coordinador de Area</h3></div>';
+            if (cartaRaw) {
+                html += `
+                    <div style="display: flex; align-items: center; gap: 12px; padding: 12px 15px; background: #e8f8f5; border-radius: 10px; border: 1px solid #2ecc71; margin-bottom: 15px;">
+                        <a href="javascript:void(0);" onclick="abrirVisorArchivo('${cartaRaw}', 'Carta de Aprobación - ${nombre.replace(/'/g, "\\'")}')" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: #1a2a3a; flex: 1;">
+                            <i class="fas fa-file-signature" style="color: #2ecc71; font-size: 1.2rem;"></i>
+                            <div>
+                                <strong style="display: block; font-size: 0.9rem;">Carta de Aprobación</strong>
+                                <span style="font-size: 0.75rem; color: #777;">Click para ver archivo</span>
+                            </div>
+                        </a>
+                    </div>
+                `;
+            }
+            if (obsJefeRaw) {
+                html += `
+                    <div style="padding: 15px; background: #fdf2e9; border-radius: 10px; border: 1px solid #f1c40f; margin-bottom: 15px;">
+                        <strong style="color: #d35400; font-size: 0.9rem; display: block; margin-bottom: 5px;">Observación del Jefe:</strong>
+                        <p style="margin: 0; font-size: 0.9rem; color: #555;">${obsJefeRaw}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        html += '<div style="margin-bottom: 25px; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px;"><h3 style="color: #1a2a3a; margin: 0; font-size: 1.1rem;">Datos del Formulario</h3></div>';
+        
+        try {
+            const datos = JSON.parse(datosRaw);
+            if (Object.keys(datos).length === 0) {
+                html += '<p style="color: #777; font-style: italic;">No hay datos adicionales.</p>';
+            } else {
+                html += '<table style="width: 100%; border-collapse: collapse;">';
+                for (const [key, value] of Object.entries(datos)) {
+                    let displayValue = value || '---';
+                    
+                    // Si el valor parece ser una imagen (URL o ruta de archivo), mostrar miniatura
+                    if (value && (value.match(/\.(jpeg|jpg|gif|png)$/i) || value.includes('/uploads/postulaciones/'))) {
+                        displayValue = `
+                            <div style="display: flex; flex-direction: column; gap: 5px;">
+                                <a href="javascript:void(0);" onclick="abrirVisorArchivo('${value}', '${key} - ${nombre.replace(/'/g, "\\'")}')">
+                                    <img src="${value}" style="max-width: 150px; max-height: 100px; border-radius: 8px; border: 1px solid #ddd; object-fit: cover;">
+                                </a>
+                                <small style="color: #3498db;">Click para ampliar</small>
+                            </div>
+                        `;
+                    }
+
+                    let checkboxHtml = '';
+                    if (!isReadonly) {
+                        checkboxHtml = `<input type="checkbox" class="req-check" onchange="verificarChecklist('${id}', '${nombre.replace(/'/g, "\\'")}', this)" style="width: 18px; height: 18px; cursor: pointer;">`;
+                    } else {
+                        checkboxHtml = `<i class="fas fa-check" style="color: #2ecc71;"></i>`;
+                    }
+
+                    html += `
+                        <tr style="border-bottom: 1px solid #f9f9f9;">
+                            <td style="padding: 12px 0; color: #666; width: 5%; vertical-align: top; text-align: center;">
+                                ${checkboxHtml}
+                            </td>
+                            <td style="padding: 12px 0; color: #666; width: 35%; font-weight: 600; vertical-align: top;">${key}:</td>
+                            <td style="padding: 12px 0; color: #333;">${displayValue}</td>
+                        </tr>
+                    `;
+                }
+                html += '</table>';
+            }
+            
+            const archivos = JSON.parse(archivosRaw);
+            if (Object.keys(archivos).length > 0) {
+                html += '<div style="margin: 30px 0 15px; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px;"><h3 style="color: #1a2a3a; margin: 0; font-size: 1.1rem;">Archivos Adjuntos</h3></div>';
+                html += '<div style="display: flex; flex-direction: column; gap: 10px;">';
+                for (const [key, url] of Object.entries(archivos)) {
+                    let checkboxHtml = '';
+                    if (!isReadonly) {
+                        checkboxHtml = `<input type="checkbox" class="req-check" onchange="verificarChecklist('${id}', '${nombre.replace(/'/g, "\\'")}', this)" style="width: 18px; height: 18px; cursor: pointer;">`;
+                    } else {
+                        checkboxHtml = `<i class="fas fa-check" style="color: #2ecc71; margin: 0 5px;"></i>`;
+                    }
+
+                    html += `
+                        <div style="display: flex; align-items: center; gap: 12px; padding: 12px 15px; background: #f8f9fa; border-radius: 10px; border: 1px solid #eee;">
+                            ${checkboxHtml}
+                            <a href="javascript:void(0);" onclick="abrirVisorArchivo('${url}', '${key} - ${nombre.replace(/'/g, "\\'")}')" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: #1a2a3a; flex: 1;">
+                                <i class="fas fa-file-download" style="color: #e63946; font-size: 1.2rem;"></i>
+                                <div>
+                                    <strong style="display: block; font-size: 0.9rem;">${key}</strong>
+                                    <span style="font-size: 0.75rem; color: #777;">Click para ver archivo</span>
+                                </div>
+                            </a>
+                        </div>
+                    `;
+                }
+                html += '</div>';
+            }
+        } catch (e) {
+            html = '<p style="color: #e63946;">Error al cargar los datos: ' + e.message + '</p>';
+        }
+        
+        content.innerHTML = html;
+        modal.style.display = 'flex';
+    }
+    
+    function verificarChecklist(id, nombre, clickedCheckbox) {
+        const checkboxes = document.querySelectorAll('#modal-content-area .req-check');
+        const todosChequeados = Array.from(checkboxes).every(cb => cb.checked);
+        const selectEstado = document.getElementById('estado_' + id);
+        
+        if (!selectEstado) return; // Prevent error if dropdown is missing
+        
+        if (todosChequeados && checkboxes.length > 0) {
+            // Verificar si es estudiante (tiene opcion candidato) o docente (tiene opcion aprobado_ori)
+            const isDocente = !Array.from(selectEstado.options).some(opt => opt.value === 'candidato');
+            selectEstado.value = isDocente ? 'aprobado_ori' : 'candidato';
+            
+            selectEstado.style.borderColor = '#2ecc71';
+            selectEstado.style.backgroundColor = '#e8f8f5';
+            
+            // Auto-close modal when all requirements are checked (approved as candidato)
+            setTimeout(() => {
+                cerrarModal();
+            }, 600);
+        } else {
+            selectEstado.value = 'espera_ori';
+            selectEstado.style.borderColor = '#f1c40f';
+            selectEstado.style.backgroundColor = '#fcf3cf';
+            
+            // Auto open observation modal only if the user explicitly unchecked a box
+            if (clickedCheckbox && !clickedCheckbox.checked) {
+                const comentariosInput = document.getElementById('comentarios_' + id);
+                const comentarioActual = comentariosInput ? comentariosInput.value : '';
+                abrirModalObs(id, nombre, comentarioActual);
+            }
+        }
+    }
+    
+    function cerrarModal() {
+        if (window.currentModalPostuId) {
+            const checkboxes = document.querySelectorAll('#modal-content-area .req-check');
+            if (checkboxes.length > 0) {
+                const todosChequeados = Array.from(checkboxes).every(cb => cb.checked);
+                const algunChequeado = Array.from(checkboxes).some(cb => cb.checked);
+                
+                // Si revisaron algo (algún checkbox marcado) pero no todo, y no hay comentario, forzamos observación
+                if (algunChequeado && !todosChequeados) {
+                    const comentariosInput = document.getElementById('comentarios_' + window.currentModalPostuId);
+                    const comentarioActual = comentariosInput ? comentariosInput.value : '';
+                    
+                    if (comentarioActual.trim() === '') {
+                        abrirModalObs(window.currentModalPostuId, window.currentModalPostuNombre, '');
+                        return; // No cerramos el modal principal todavía, o lo dejamos debajo
+                    }
+                }
+            }
+        }
+        document.getElementById('modal-detalles').style.display = 'none';
+        window.currentModalPostuId = null;
+        window.currentModalPostuNombre = null;
+    }
+
+    function verDatosAcademicos(nombre, universidad, carrera) {
+        const modal = document.getElementById('modal-detalles');
+        const content = document.getElementById('modal-content-area');
+        
+        let html = `
+            <div style="margin-bottom: 25px; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px;">
+                <h3 style="color: #1a2a3a; margin: 0; font-size: 1.1rem;">Datos Académicos de ${nombre}</h3>
+            </div>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr><td style="padding: 12px 0; color: #666; width: 40%; font-weight: 600;">Universidad:</td><td style="padding: 12px 0; color: #333;">${universidad}</td></tr>
+                <tr><td style="padding: 12px 0; color: #666; width: 40%; font-weight: 600;">Área:</td><td style="padding: 12px 0; color: #333;">${carrera}</td></tr>
+            </table>
+        `;
+        
+        content.innerHTML = html;
+        modal.style.display = 'flex';
+    }
+    
+    // Cerrar modal al hacer click fuera
+    window.onclick = function(event) {
+        const modalDetalles = document.getElementById('modal-detalles');
+        const modalVisor = document.getElementById('modal-visor-archivo');
+        if (event.target == modalDetalles) {
+            cerrarModal();
+        }
+        if (event.target == modalVisor) {
+            cerrarVisorArchivo();
+        }
+    }
+</script>
+{% endblock %}

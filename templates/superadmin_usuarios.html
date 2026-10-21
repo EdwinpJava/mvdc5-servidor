@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Administración de Usuarios{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 120px; min-height: 80vh;">
+    <h2 class="text-center mb-4" style="color: var(--rojo-corp);">Panel de SuperAdmin: Gestión de Usuarios</h2>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} text-center" style="max-width: 600px; margin: 0 auto 20px auto; padding: 10px; border-radius: 8px;">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="table-responsive" style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+        <table class="table table-hover align-middle">
+            <thead style="background: #f8f9fa;">
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Rol</th>
+                    <th>Universidad</th>
+                    <th>Carrera</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for usuario in usuarios %}
+                <tr>
+                    <td>{{ usuario.id }}</td>
+                    <td><strong>{{ usuario.nombre }}</strong></td>
+                    <td>{{ usuario.email }}</td>
+                    <td>
+                        <span class="badge" style="background-color: #6c757d;">{{ usuario.rol }}</span>
+                    </td>
+                    <td>{{ usuario.universidad or 'N/A' }}</td>
+                    <td>{{ usuario.carrera or 'N/A' }}</td>
+                    <td>
+                        <form action="{{ url_for('superadmin_eliminar_usuario', id=usuario.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('¿Estás totalmente seguro de que deseas ELIMINAR este usuario y todas sus postulaciones/noticias? Esta acción no se puede deshacer.');">
+                            <button type="submit" class="btn btn-danger btn-sm" style="background: #e63946; border: none;">
+                                <i class="fas fa-trash-alt"></i> Eliminar
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center py-4">No hay usuarios registrados en la plataforma.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

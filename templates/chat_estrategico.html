@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='chat.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="chat-section">
+    <div class="container">
+        <div class="chat-container">
+            
+            <!-- Sidebar: Lista de Contactos -->
+            <div class="chat-sidebar {{ 'mobile-hidden' if selected_contact }}">
+                <div class="sidebar-header">
+                    <h3><i class="fas fa-users"></i> Usuarios</h3>
+                </div>
+                <div class="contact-list">
+                    {% for contacto in contactos %}
+                    {% if contacto.id != current_user_id %}
+                    <a href="{{ url_for('chat_estrategico', receptor_id=contacto.id) }}" class="contact-item {{ 'active' if selected_contact and selected_contact.id == contacto.id }}">
+                        <div class="contact-avatar">
+                            {% if contacto.foto_perfil %}
+                                <img src="{{ contacto.foto_perfil }}" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ contacto.nombre }}&background=random';">
+                            {% else %}
+                                <img src="https://ui-avatars.com/api/?name={{ contacto.nombre }}&background=random&color=fff">
+                            {% endif %}
+                        </div>
+                        <div class="contact-info">
+                            <div class="contact-name">{{ contacto.nombre.title() }}</div>
+                            <div class="contact-role">
+                                {% if contacto.rol == 'coordinador_ori' %}Coordinador ORI{% else %}C.A: {{ contacto.carrera }}{% endif %}
+                            </div>
+                        </div>
+                    </a>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Main Chat Area -->
+            <div class="chat-main {{ 'mobile-hidden' if not selected_contact }}">
+                
+                <!-- Chat Header -->
+                <div class="chat-header">
+                    <div class="header-user-info">
+                        {% if selected_contact %}
+                            <a href="{{ url_for('chat_estrategico') }}" class="mobile-back-btn" style="display: none; color: #333; font-size: 1.2rem; margin-right: 5px;"><i class="fas fa-arrow-left"></i></a>
+                            <div class="header-avatar">
+                                {% if selected_contact.foto_perfil %}
+                                    <img src="{{ selected_contact.foto_perfil }}" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ selected_contact.nombre }}&background=random&color=fff';">
+                                {% else %}
+                                    <img src="https://ui-avatars.com/api/?name={{ selected_contact.nombre }}&background=random&color=fff">
+                                {% endif %}
+                            </div>
+                            <div class="header-name">Canal de {{ selected_contact.nombre.title() }}</div>
+                        {% else %}
+                            <div class="header-name">Selecciona un contacto</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Messages area -->
+                <div id="chat-messages">
+                    {% for mensaje in mensajes %}
+                        {% set is_me = (mensaje.remitente_id == current_user_id) %}
+                        <div class="message-bubble-container {{ 'sent' if is_me else 'received' }}" data-sender-id="{{ mensaje.remitente_id }}" data-sender-name="{{ mensaje.remitente.nombre.split()[0].title() }}">
+                            {% if not is_me and not selected_contact %}
+                            <div class="bubble-sender-name">
+                                {{ mensaje.remitente.nombre.split()[0].title() }}
+                            </div>
+                            {% endif %}
+                            
+                            <div class="bubble-content">
+                                
+                                <!-- Opciones del mensaje (Hover) -->
+                                <div class="msg-options">
+                                    {% if is_me or session.get('rol') == 'superadmin' %}
+                                    <button onclick="borrarMensaje({{ mensaje.id }})" title="Borrar" style="color: #e74c3c;"><i class="fas fa-trash"></i></button>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Contenido Multimedia -->
+                                {% if mensaje.archivo_url %}
+                                    <div class="msg-media">
+                                        {% if mensaje.archivo_tipo == 'image' %}
+                                            <img src="{{ mensaje.archivo_url }}" onclick="window.open(this.src)">
+                                        {% elif mensaje.archivo_tipo == 'video' %}
+                                            <video controls>
+                                                <source src="{{ mensaje.archivo_url }}">
+                                            </video>
+                                        {% else %}
+                                            <div class="file-attachment">
+                                                <i class="fas fa-file-alt file-icon"></i>
+                                                <div class="file-info">
+                                                    <div class="file-name">{{ mensaje.archivo_nombre }}</div>
+                                                    <a href="{{ mensaje.archivo_url }}" target="_blank" class="file-link">Descargar</a>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+
+                                {% if mensaje.mensaje %}
+                                    <div style="word-wrap: break-word;">{{ mensaje.mensaje }}</div>
+                                {% endif %}
+                                
+                                <span class="message-time">{{ mensaje.fecha.strftime('%H:%M') }}</span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Input area -->
+                <div class="chat-input-area">
+                    <form id="chat-form" class="chat-form">
+                        <input type="hidden" id="receptor-id" value="{{ selected_contact.id if selected_contact else '' }}">
+                        <label class="attachment-label">
+                            <i class="fas fa-paperclip"></i>
+                            <input type="file" id="archivo-input" style="display: none;" onchange="updateFileLabel()">
+                        </label>
+                        <div id="file-preview">
+                            <span id="file-name"></span>
+                            <i class="fas fa-times" style="color: #e74c3c; cursor: pointer;" onclick="clearFile()"></i>
+                        </div>
+                        <input type="text" id="mensaje-input" class="mensaje-input" placeholder="Escribe un mensaje..." autocomplete="off">
+                        <button type="submit" id="submit-btn" class="submit-btn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    const chatMessages = document.getElementById('chat-messages');
+    const chatForm = document.getElementById('chat-form');
+    const mensajeInput = document.getElementById('mensaje-input');
+    const archivoInput = document.getElementById('archivo-input');
+    const filePreview = document.getElementById('file-preview');
+    const fileName = document.getElementById('file-name');
+    const submitBtn = document.getElementById('submit-btn');
+    const receptorInput = document.getElementById('receptor-id');
+    let lastMessageCount = {{ mensajes|length }};
+
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    function updateFileLabel() {
+        if (archivoInput.files.length > 0) {
+            fileName.textContent = archivoInput.files[0].name;
+            filePreview.style.display = 'flex';
+        }
+    }
+
+    function clearFile() {
+        archivoInput.value = '';
+        filePreview.style.display = 'none';
+    }
+
+    async function borrarMensaje(id) {
+        if (!confirm("¿Borrar este mensaje?")) return;
+        try {
+            const res = await fetch(`/chat-estrategico/borrar/${id}`, { method: 'POST' });
+            if (res.ok) location.reload();
+        } catch(e) { console.error(e); }
+    }
+
+    chatForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const mensaje = mensajeInput.value.trim();
+        const archivo = archivoInput.files[0];
+        const receptor_id = receptorInput.value;
+        
+        if (!mensaje && !archivo) {
+            Swal.fire({ toast: true, position: 'top-end', icon: 'warning', title: 'Escribe algo o adjunta un archivo', showConfirmButton: false, timer: 3000 });
+            return;
+        }
+
+        const formData = new FormData();
+        if (mensaje) formData.append('mensaje', mensaje);
+        if (archivo) formData.append('archivo', archivo);
+        if (receptor_id) formData.append('receptor_id', receptor_id);
+
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.5';
+
+        try {
+            const response = await fetch("{{ url_for('chat_enviar') }}", {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (response.ok) {
+                mensajeInput.value = '';
+                clearFile();
+                window.location.reload();
+            }
+        } catch (error) {
+            console.error("Error:", error);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+        }
+    });
+
+    async function checkNewMessages() {
+        try {
+            const url = receptorInput.value ? `/chat-estrategico/${receptorInput.value}` : "/chat-estrategico";
+            const response = await fetch(url);
+            const html = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const newMessages = doc.querySelectorAll('.message-bubble-container').length;
+            
+            if (newMessages > lastMessageCount) {
+                const latestMsgElement = doc.querySelectorAll('.message-bubble-container')[newMessages - 1];
+                const isFromMe = latestMsgElement.getAttribute('data-sender-id') == "{{ current_user_id }}";
+                
+                if (!isFromMe) {
+                    const senderName = latestMsgElement.getAttribute('data-sender-name');
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: `Nuevo mensaje de ${senderName}`, showConfirmButton: false, timer: 4000 });
+                    try { new Audio('https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3').play(); } catch(e) {}
+                }
+                
+                lastMessageCount = newMessages;
+                chatMessages.innerHTML = doc.getElementById('chat-messages').innerHTML;
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        } catch (error) { console.error(error); }
+    }
+
+    setInterval(checkNewMessages, 5000);
+</script>
+{% endblock %}

@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="dashboard-section section-padding">
+    <div class="container dashboard-container">
+        <div class="dashboard-header reveal">
+            <div class="welcome-box">
+                <div class="welcome-flex">
+                    <div class="welcome-text-area">
+                        <h1><span data-i18n="dash-welcome">Bienvenido al Portal Académico</span>, <span class="text-highlight">{{ nombre.title() }}</span></h1>
+                        <p data-i18n="dash-subtitle">Gestione sus postulaciones y explore nuevas oportunidades de movilidad internacional.</p>
+                    </div>
+                    <div class="date-display">
+                        <i class="far fa-calendar-alt"></i>
+                        <span id="currentDate"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- Columna Principal -->
+            <div class="main-column reveal">
+                <!-- Resumen de Postulaciones -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-paper-plane"></i> <span data-i18n="dash-postu-title">Mis Postulaciones Recientes</span></h2>
+                        <a href="{{ url_for('perfil') }}#historial-postulaciones" class="btn-link" data-i18n="dash-view-all">Ver todas</a>
+                    </div>
+                    <div class="card-body">
+                        {% if postulaciones %}
+                            <!-- Línea de Tiempo para la postulación más reciente -->
+                            <div class="postulation-timeline-container">
+                                <div class="postulation-timeline">
+                                    {% set last_postu = postulaciones[0] %}
+                                    {% set es_docente = usuario.rol in ['docente', 'coordinador_area'] %}
+                                    <div class="timeline-step completed">
+                                        <div class="step-icon"><i class="fas fa-edit"></i></div>
+                                        <div class="step-label">Registro</div>
+                                    </div>
+                                    <div class="timeline-step {% if last_postu.estado == 'pendiente_ori' %}active{% elif last_postu.estado in ['candidato', 'aprobado_jefe', 'aprobado_ori'] %}completed{% endif %}">
+                                        <div class="step-icon"><i class="fas fa-search"></i></div>
+                                        <div class="step-label">Revisión ORI</div>
+                                    </div>
+                                    {% if not es_docente %}
+                                    <div class="timeline-step {% if last_postu.estado == 'candidato' %}active{% elif last_postu.estado == 'aprobado_jefe' %}completed{% endif %}">
+                                        <div class="step-icon"><i class="fas fa-user-check"></i></div>
+                                        <div class="step-label">Coordinación</div>
+                                    </div>
+                                    {% endif %}
+                                    <div class="timeline-step {% if es_docente %}
+                                        {% if last_postu.estado == 'aprobado_ori' and not last_postu.carta_ori_1_url %}active
+                                        {% elif last_postu.carta_ori_1_url %}completed{% endif %}
+                                    {% else %}
+                                        {% if last_postu.estado == 'aprobado_jefe' and (not last_postu.carta_ori_1_url or not last_postu.carta_ori_2_url) %}active
+                                        {% elif last_postu.carta_ori_1_url and last_postu.carta_ori_2_url %}completed{% endif %}
+                                    {% endif %}">
+                                        <div class="step-icon"><i class="fas fa-flag-checkered"></i></div>
+                                        <div class="step-label">Finalizado</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="table-responsive">
+                                <table class="dashboard-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Programa</th>
+                                            <th>Fecha</th>
+                                            <th>Estado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for postu in postulaciones %}
+                                        <tr>
+                                            <td><strong>{{ postu.programa.nombre }}</strong></td>
+                                            <td>{{ postu.fecha_postulacion.strftime('%d/%m/%Y') }}</td>
+                                            <td>
+                                                <span class="badge-pill status-{{ postu.estado }}">
+                                                    {{ postu.estado.replace('_ori', '').replace('_jefe', '').replace('_', ' ').upper() }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="empty-state">
+                                <i class="fas fa-folder-open"></i>
+                                <p data-i18n="dash-empty-postu">No tienes postulaciones activas.</p>
+                                <a href="{{ url_for('programas') }}" class="btn-primary-small" data-i18n="dash-explore-progs">Explorar Programas</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Programas Recomendados -->
+                <div class="dashboard-card featured-programs-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-star"></i> <span data-i18n="dash-feat-progs">Programas Destacados</span></h2>
+                        <a href="{{ url_for('programas') }}" class="btn-link" data-i18n="dash-view-cat">Ver catálogo</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="programs-mini-grid">
+                            {% if programas %}
+                                {% for programa in programas %}
+                                <div class="mini-program-card">
+                                    <div class="prog-img">
+                                        <img src="{{ programa.imagen_url }}" alt="{{ programa.nombre }}">
+                                    </div>
+                                    <div class="prog-info">
+                                        <h4>{{ programa.nombre }}</h4>
+                                        <a href="{{ url_for('detalle_programa', id=programa.id) }}" class="btn-text"><span data-i18n="dash-see-more">Ver más</span> <i class="fas fa-arrow-right"></i></a>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="empty-state" style="grid-column: 1 / -1; padding: 20px; text-align: center; color: #666;">
+                                    <i class="fas fa-folder-open" style="font-size: 2rem; color: #ccc; margin-bottom: 10px;"></i>
+                                    <p>No hay programas destacados disponibles para tu perfil.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Barra Lateral -->
+            <div class="sidebar-column reveal delay-1">
+                <!-- Perfil Rápido -->
+                <div class="dashboard-card user-profile-mini">
+                    <div class="user-avatar-large">
+                        {% if usuario.foto_perfil %}
+                            <img src="{{ url_for('static', filename=usuario.foto_perfil) }}?v={{ range(1, 100000) | random }}" alt="Foto de perfil" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                        {% else %}
+                            <i class="fas fa-user-circle"></i>
+                        {% endif %}
+                    </div>
+                    <h3>{{ usuario.nombre }}</h3>
+                    <p class="user-sub" data-i18n="prog-{{ usuario.carrera|lower|replace(' ', '-') }}">{{ usuario.carrera or 'Carrera no definida' }}</p>
+                    <div class="profile-stats">
+                        <div class="p-stat">
+                            <strong>{{ postulaciones|length }}</strong>
+                            <span data-i18n="dash-stat-apps">Aplicaciones</span>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('perfil') }}" class="btn-outline-full" data-i18n="dash-edit-profile">Ver Perfil</a>
+                </div>
+
+                <!-- Accesos Rápidos -->
+                <div class="dashboard-card quick-links-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-bolt"></i> <span data-i18n="dash-quick-links">Accesos Rápidos</span></h2>
+                    </div>
+                    <div class="quick-links">
+                        <a href="{{ url_for('programas') }}" class="q-link">
+                            <i class="fas fa-search-location"></i>
+                            <span data-i18n="dash-link-search">Buscar Oportunidades</span>
+                        </a>
+                        <a href="{{ url_for('noticias_publicas') }}" class="q-link">
+                            <i class="far fa-newspaper"></i>
+                            <span data-i18n="dash-link-support">Noticias</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    function updateDashboardDate(lang) {
+        const dateEl = document.getElementById('currentDate');
+        if (!dateEl) return;
+        
+        const locales = {
+            'es': 'es-ES',
+            'en': 'en-US',
+            'pt': 'pt-BR'
+        };
+        
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        dateEl.innerText = new Date().toLocaleDateString(locales[lang] || 'es-ES', options);
+    }
+    
+    // Initial date
+    updateDashboardDate(localStorage.getItem('selectedLang') || 'es');
+    
+    // Listen for language changes (event from language-selector.js)
+    window.addEventListener('languageChanged', (e) => {
+        updateDashboardDate(e.detail.lang);
+    });
+</script>
+{% endblock %}

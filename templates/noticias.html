@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='divulgacion.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="noticias-section">
+    <div class="container">
+        <div class="section-header reveal" style="text-align: center; margin-bottom: 60px;">
+            <h1 style="color: #1a2a3a; font-weight: 800; font-size: 2.5rem;">Actividades de Divulgación y Noticias</h1>
+            <div class="line-accent" style="width: 80px; height: 4px; background: #e63946; margin: 20px auto;"></div>
+            <p style="color: #666; font-size: 1.2rem;">Mantente informado sobre las últimas novedades de movilidad académica e investigación.</p>
+        </div>
+
+        {% if noticias %}
+            <div class="noticias-list">
+                {% for noticia in noticias %}
+                <div class="noticia-card reveal" id="noticia-{{ noticia.id }}">
+                    {% if noticia.imagen_url %}
+                    <img src="{{ noticia.imagen_url }}" class="noticia-img-top" alt="{{ noticia.titulo }}" loading="lazy">
+                    {% endif %}
+                    <div class="noticia-header">
+                        <h2>{{ noticia.titulo }}</h2>
+                        <div class="noticia-meta">
+                            <span><i class="far fa-calendar-alt"></i> {{ noticia.fecha.strftime('%d de %B, %Y') }}</span>
+                            <span><i class="fas fa-user"></i> Publicado por: {{ noticia.autor.nombre }}</span>
+                        </div>
+                    </div>
+                    <div class="noticia-body">
+                        {{ noticia.contenido|safe }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-noticias">
+                <i class="fas fa-newspaper" style="font-size: 4rem; opacity: 0.2; margin-bottom: 20px;"></i>
+                <p>No hay noticias publicadas en este momento.</p>
+                <a href="{{ url_for('inicio') }}" class="btn-primary" style="margin-top: 20px; display: inline-block;">Volver al Inicio</a>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

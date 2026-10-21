@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="page-header" style="background-color: #1a2a3a; padding: 120px 0 60px; color: white; text-align: center;">
+    <div class="container">
+        <h1 style="font-size: 3rem; font-weight: 800; margin-bottom: 15px;" data-i18n="progs-title">Programas de Movilidad</h1>
+        <p style="font-size: 1.2rem; color: rgba(255,255,255,0.8);" data-i18n="progs-subtitle">Explora becas, intercambios y oportunidades de investigación.</p>
+    </div>
+</section>
+
+<section class="section-padding bg-light">
+    <div class="container">
+        <!-- Buscador y Filtros -->
+        <div class="search-filter-container" style="margin-bottom: 40px; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); display: flex; flex-wrap: wrap; gap: 20px; align-items: center;">
+            <div style="flex: 1; min-width: 250px; position: relative;">
+                <i class="fas fa-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #aaa;"></i>
+                <input type="text" id="program-search" placeholder="Buscar programas..." style="width: 100%; padding: 12px 15px 12px 45px; border: 1px solid #ddd; border-radius: 10px; font-size: 1rem;">
+            </div>
+            {% if session.get('rol') not in ['estudiante', 'docente', 'coordinador_area'] %}
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="filter-btn active" data-filter="all" style="padding: 8px 20px; border-radius: 25px; border: 1px solid #850000; background: #850000; color: white; cursor: pointer; font-weight: 600; transition: 0.3s;">Todos</button>
+                <button class="filter-btn" data-filter="estudiante" style="padding: 8px 20px; border-radius: 25px; border: 1px solid #ddd; background: white; color: #555; cursor: pointer; font-weight: 600; transition: 0.3s;">Estudiantes</button>
+                <button class="filter-btn" data-filter="docente" style="padding: 8px 20px; border-radius: 25px; border: 1px solid #ddd; background: white; color: #555; cursor: pointer; font-weight: 600; transition: 0.3s;">Docentes/Admin</button>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if programas %}
+        <div class="cards-grid" id="programs-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 30px;">
+            {% for programa in programas %}
+            <div class="program-card" data-category="{{ programa.dirigido_a }}" data-type="{{ programa.tipo|lower }}" style="background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transition: transform 0.3s;">
+                <div class="program-image" style="height: 200px; overflow: hidden; position: relative;">
+                    <img src="{{ programa.imagen_url }}" alt="{{ programa.nombre }}" style="width: 100%; height: 100%; object-fit: cover; {% if programa.fecha_fin and programa.fecha_fin < now %}filter: grayscale(100%); opacity: 0.7;{% endif %}" loading="lazy">
+                    <div style="position: absolute; top: 15px; left: 15px; right: 15px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; z-index: 2; pointer-events: none;">
+                        <span class="badge-pill" style="background: #1a2a3a; color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; line-height: 1.3; max-width: 100%; display: inline-block; word-break: break-word; text-align: center; pointer-events: auto;">{{ programa.dirigido_a|title }}</span>
+                        <span class="badge-pill" style="background: #e63946; color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; line-height: 1.3; max-width: 100%; display: inline-block; word-break: break-word; text-align: center; pointer-events: auto;">{{ programa.tipo }}</span>
+                    </div>
+                    {% if programa.fecha_fin and programa.fecha_fin < now %}
+                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 1.2rem; letter-spacing: 2px;">
+                        CONVOCATORIA CERRADA
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="program-body" style="padding: 30px;">
+                    <h3 class="program-title" style="color: #1a2a3a; margin-bottom: 15px; font-size: 1.4rem;">{{ programa.nombre }}</h3>
+                    <p class="program-desc" style="color: #666; margin-bottom: 25px; line-height: 1.6; height: 75px; overflow: hidden;">{{ programa.descripcion }}</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #eee; padding-top: 20px;">
+                        <a href="{{ url_for('detalle_programa', id=programa.id) }}" class="btn-primary {% if programa.fecha_fin and programa.fecha_fin < now %}btn-muted{% endif %}" data-i18n="progs-btn-details">
+                            <i class="fas {% if programa.fecha_fin and programa.fecha_fin < now %}fa-circle-info{% else %}fa-arrow-right{% endif %}"></i>
+                            <span>{% if programa.fecha_fin and programa.fecha_fin < now %}Ver Información{% else %}Ver Detalles{% endif %}</span>
+                        </a>
+                        {% if programa.fecha_fin %}
+                        <small style="color: {% if programa.fecha_fin < now %}#dc3545{% else %}#28a745{% endif %}; font-weight: 600;">
+                            <i class="fas fa-clock"></i> {{ programa.fecha_fin.strftime('%d/%m/%Y') }}
+                        </small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Script de búsqueda y filtrado -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const searchInput = document.getElementById('program-search');
+                const filterBtns = document.querySelectorAll('.filter-btn');
+                const cards = document.querySelectorAll('.program-card');
+                
+                function filterPrograms() {
+                    const searchTerm = searchInput.value.toLowerCase();
+                    const activeFilter = document.querySelector('.filter-btn.active').dataset.filter;
+                    
+                    cards.forEach(card => {
+                        const title = card.querySelector('.program-title').textContent.toLowerCase();
+                        const desc = card.querySelector('.program-desc').textContent.toLowerCase();
+                        const category = card.dataset.category.toLowerCase();
+                        const type = card.dataset.type.toLowerCase();
+                        
+                        const matchesSearch = title.includes(searchTerm) || desc.includes(searchTerm);
+                        let matchesFilter = true;
+                        
+                        if (activeFilter !== 'all') {
+                            if (activeFilter === 'beca') {
+                                matchesFilter = type.includes('beca');
+                            } else {
+                                matchesFilter = category.includes(activeFilter);
+                            }
+                        }
+                        
+                        if (matchesSearch && matchesFilter) {
+                            card.style.display = 'block';
+                            card.style.animation = 'fadeIn 0.4s ease';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                }
+                
+                searchInput.addEventListener('input', filterPrograms);
+                
+                filterBtns.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        filterBtns.forEach(b => {
+                            b.classList.remove('active');
+                            b.style.background = 'white';
+                            b.style.color = '#555';
+                            b.style.borderColor = '#ddd';
+                        });
+                        btn.classList.add('active');
+                        btn.style.background = '#850000';
+                        btn.style.color = 'white';
+                        btn.style.borderColor = '#850000';
+                        filterPrograms();
+                    });
+                });
+            });
+        </script>
+        {% else %}
+        <div style="text-align: center; padding: 50px 20px; background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+            <i class="fas fa-folder-open" style="font-size: 4rem; color: #ccc; margin-bottom: 20px;"></i>
+            <h3 style="color: #1a2a3a; margin-bottom: 10px;">No hay programas disponibles</h3>
+            <p style="color: #666;">En este momento no hay convocatorias abiertas para tu perfil.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

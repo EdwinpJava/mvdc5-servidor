@@ -1,0 +1,396 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='divulgacion.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='index-carousels.css') }}">
+<!-- Swiper CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+{% endblock %}
+
+{% block content %}
+<header id="inicio" class="hero-section" style="background-image: url('{{ url_for('static', filename='img/movilidad1.png') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
+    <div class="hero-overlay"></div>
+    <div class="hero-content reveal">
+        <span class="badge-pill" data-i18n="hero-badge">MOVILIDAD DEL CONOCIMIENTO</span>
+        <h1 data-i18n="hero-title">Innovación y <br><span class="text-highlight">Movilidad Global</span></h1>
+        <p data-i18n="hero-desc">Potenciando el intercambio científico y la excelencia académica para un futuro sostenible.</p>
+        <div class="hero-buttons">
+            <a href="javascript:void(0)" onclick="document.getElementById('openModalBtn').click()" class="btn-primary" data-i18n="hero-btn-explore">Explorar Plataforma</a>
+        </div>
+    </div>
+</header>
+
+<section class="section-padding bg-white">
+    <div class="container">
+        <div class="movilidad-header reveal">
+            <h2 data-i18n="movilidad-title">MOVILIDAD DEL CONOCIMIENTO</h2>
+            <div class="movilidad-line"></div>
+        </div>
+        
+        <div class="movilidad-content reveal">
+            <div class="movilidad-text">
+                <p data-i18n="movilidad-desc">Fomentamos la colaboración internacional y el flujo de ideas para transformar la sociedad.</p>
+                <p>Ofrece a estudiantes, docentes y personal administrativo la oportunidad de participar en actividades académicas, de investigación, proyección social y extensión mediante la colaboración con instituciones de educación superior, centros de investigación aliados, redes y asociaciones.</p>
+            </div>
+            <div class="movilidad-image">
+                <img src="{{ url_for('static', filename='img/intercambio.png') }}" alt="Movilidad del Conocimiento" loading="lazy">
+            </div>
+        </div>
+
+        <div class="movilidad-icons">
+            <div class="movilidad-icon-item reveal delay-1">
+                <i class="fas fa-globe-americas"></i>
+                <p>Global Impact</p>
+            </div>
+            <div class="movilidad-icon-item reveal delay-2">
+                <i class="fas fa-hands"></i>
+                <p>Collaboration</p>
+            </div>
+            <div class="movilidad-icon-item reveal delay-3">
+                <i class="fas fa-project-diagram"></i>
+                <p>Strategic Projects</p>
+            </div>
+            <div class="movilidad-icon-item reveal delay-4">
+                <i class="fas fa-sync-alt"></i>
+                <p>Continuous Exchange</p>
+            </div>
+            <div class="movilidad-icon-item reveal delay-5">
+                <i class="fas fa-trophy"></i>
+                <p>Academic Excellence</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="programa" class="section-padding bg-light">
+    <div class="container">
+        <div class="section-header reveal">
+            <h2>Nuestras Facultades</h2>
+            <div class="line-accent"></div>
+        </div>
+        
+        <div class="cards-grid facultades-grid">
+            <div class="feature-card reveal delay-1">
+                <i class="fas fa-heartbeat icon-box"></i>
+                <h3>Ciencias de la Salud</h3>
+            </div>
+            <div class="feature-card reveal delay-2">
+                <i class="fas fa-cogs icon-box"></i>
+                <h3>Ingenierías</h3>
+            </div>
+            <div class="feature-card reveal delay-3">
+                <i class="fas fa-users icon-box"></i>
+                <h3>Ciencias Sociales y Humanas</h3>
+            </div>
+            <div class="feature-card reveal delay-4">
+                <i class="fas fa-chart-line icon-box"></i>
+                <h3>Ciencias Económicas y Administrativas</h3>
+            </div>
+            <div class="feature-card reveal delay-5">
+                <i class="fas fa-leaf icon-box"></i>
+                <h3>Ciencias Naturales</h3>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SECCIÓN DE TIPOS DE MOVILIDAD -->
+<section id="tipos-movilidad" class="section-padding bg-light">
+    <div class="container">
+        <div class="section-header reveal">
+            <h2>Tipos de Movilidad</h2>
+            <div class="line-accent"></div>
+        </div>
+        
+        <div class="swiper movilidad-swiper reveal delay-1">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide">
+                    <div class="feature-card">
+                        <i class="fas fa-graduation-cap icon-box"></i>
+                        <h3>Programa Doble Titulación</h3>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="feature-card">
+                        <i class="fas fa-book-reader icon-box"></i>
+                        <h3>Semestre Académico</h3>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="feature-card">
+                        <i class="fas fa-sun icon-box"></i>
+                        <h3>Escuela de Verano</h3>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="feature-card">
+                        <i class="fas fa-user-md icon-box"></i>
+                        <h3>Internado Rotaciones Clínicas</h3>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="feature-card">
+                        <i class="fas fa-briefcase icon-box"></i>
+                        <h3>Prácticas Profesionales</h3>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="feature-card">
+                        <i class="fas fa-hands-helping icon-box"></i>
+                        <h3>Voluntariado</h3>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="feature-card">
+                        <i class="fas fa-microscope icon-box"></i>
+                        <h3>Pasantía de Investigación</h3>
+                    </div>
+                </div>
+            </div>
+            <!-- Paginación -->
+            <div class="swiper-pagination" style="position: relative; margin-top: 20px;"></div>
+        </div>
+    </div>
+</section>
+
+<!-- SECCIÓN DE DIVULGACIÓN Y NOTICIAS -->
+<section id="noticias" class="section-padding bg-white">
+    <div class="container content-split reverse" style="flex-direction: column; gap: 40px;">
+        <div class="text-column reveal" style="flex: 0 0 100%; max-width: 100%; margin-bottom: 40px;">
+            <h2 data-i18n="divulgacion-titulo" style="text-align: center;">Actividades de Divulgación y Noticias</h2>
+            
+            <div class="swiper news-swiper">
+                <div class="swiper-wrapper">
+                    {% if noticias %}
+                        {% for noticia in noticias %}
+                        <div class="swiper-slide">
+                            <div class="news-card">
+                                {% if noticia.imagen_url %}
+                                <div style="width: 100%; height: 150px; overflow: hidden; border-radius: 10px; margin-bottom: 15px;">
+                                    <img src="{{ noticia.imagen_url }}" alt="{{ noticia.titulo }}" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy">
+                                </div>
+                                {% endif %}
+                                <span class="news-date"><i class="far fa-calendar-alt"></i> {{ noticia.fecha.strftime('%d %B, %Y') }}</span>
+                                <h3>{{ noticia.titulo }}</h3>
+                                <div class="news-excerpt" style="height: 80px; overflow: hidden; margin-bottom: 20px; color: #666; font-size: 0.95rem; line-height: 1.6;">
+                                    {{ noticia.contenido|striptags|truncate(150) }}
+                                </div>
+                                <a href="{{ url_for('noticias_publicas') }}#noticia-{{ noticia.id }}" class="news-link">Leer más <i class="fas fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <!-- Noticias por defecto si no hay en la BD -->
+                        <div class="swiper-slide">
+                            <div class="news-card">
+                                <span class="news-date"><i class="far fa-calendar-alt"></i> 21 Abril, 2026</span>
+                                <h3>Lanzamiento del Verano Científico 2026</h3>
+                                <p>Iniciamos una nueva edición de nuestro programa estrella, conectando a investigadores de todo el mundo.</p>
+                                <a href="#" class="news-link">Leer más <i class="fas fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                <!-- Paginación -->
+                <div class="swiper-pagination"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SECCIÓN DE ESTADÍSTICAS Y GALERÍA -->
+<section class="bg-dark-corp stats-section reveal" style="padding: 80px 0;">
+    <div class="container">
+        <div class="image-column reveal delay-2" style="flex: 0 0 100%; max-width: 100%; margin-bottom: 80px;">
+            <h2 style="text-align: center; margin-bottom: 30px; color: white;"><i class="fas fa-camera"></i> Galería</h2>
+            <div class="swiper gallery-swiper">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide">
+                        <img src="{{ url_for('static', filename='img/carrusel/IMG_1.JPG') }}" alt="Galería 1" loading="lazy">
+                    </div>
+                    <div class="swiper-slide">
+                        <img src="{{ url_for('static', filename='img/carrusel/IMG_2.JPG') }}" alt="Galería 2" loading="lazy">
+                    </div>
+                    <div class="swiper-slide">
+                        <img src="{{ url_for('static', filename='img/carrusel/IMG_3.JPG') }}" alt="Galería 3" loading="lazy">
+                    </div>
+                    <div class="swiper-slide">
+                        <img src="{{ url_for('static', filename='img/carrusel/IMG_4.JPG') }}" alt="Galería 4" loading="lazy">
+                    </div>
+                    <div class="swiper-slide">
+                        <img src="{{ url_for('static', filename='img/carrusel/IMG_5.JPG') }}" alt="Galería 5" loading="lazy">
+                    </div>
+                    <div class="swiper-slide">
+                        <img src="{{ url_for('static', filename='img/carrusel/IMG_6.JPG') }}" alt="Galería 6" loading="lazy">
+                    </div>
+                    <div class="swiper-slide">
+                        <img src="{{ url_for('static', filename='img/carrusel/IMG_7.jpg') }}" alt="Galería 7" loading="lazy">
+                    </div>
+                    <div class="swiper-slide">
+                        <img src="{{ url_for('static', filename='img/carrusel/IMG_8.jpg') }}" alt="Galería 8" loading="lazy">
+                    </div>
+                    <div class="swiper-slide">
+                        <img src="{{ url_for('static', filename='img/carrusel/IMG_9.jpg') }}" alt="Galería 9" loading="lazy">
+                    </div>
+                    <div class="swiper-slide">
+                        <img src="{{ url_for('static', filename='img/carrusel/IMG_10.jpeg') }}" alt="Galería 10" loading="lazy">
+                    </div>
+                    <div class="swiper-slide">
+                        <img src="{{ url_for('static', filename='img/carrusel/IMG_11.JPG') }}" alt="Galería 11" loading="lazy">
+                    </div>
+                    <div class="swiper-slide">
+                        <img src="{{ url_for('static', filename='img/carrusel/IMG_12.JPG') }}" alt="Galería 12" loading="lazy">
+                    </div>
+                    <div class="swiper-slide">
+                        <img src="{{ url_for('static', filename='img/carrusel/IMG_13.JPG') }}" alt="Galería 13" loading="lazy">
+                    </div>
+                    <div class="swiper-slide">
+                        <img src="{{ url_for('static', filename='img/carrusel/IMG_14.JPG') }}" alt="Galería 14" loading="lazy">
+                    </div>
+                    <div class="swiper-slide">
+                        <img src="{{ url_for('static', filename='img/carrusel/IMG_15.JPG') }}" alt="Galería 15" loading="lazy">
+                    </div>
+                </div>
+                <!-- Navegación -->
+                <div class="swiper-button-next"></div>
+                <div class="swiper-button-prev"></div>
+            </div>
+        </div>
+
+        <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr); gap: 40px; margin-bottom: 50px;">
+            <div class="stat-item">
+                <div class="stat-number" data-target="1800" data-prefix="+">0</div>
+                <div class="stat-icon" style="font-size: 3rem; color: white; margin: 15px 0;"><i class="fas fa-users"></i></div>
+                <div class="stat-label">ESTUDIANTES MOVILIZADOS</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-target="800" data-prefix="+">0</div>
+                <div class="stat-icon" style="font-size: 3rem; color: white; margin: 15px 0;"><i class="fas fa-chalkboard-teacher"></i></div>
+                <div class="stat-label">DOCENTES/ADMIN MOVILIZADOS</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-target="6" data-prefix="+">0</div>
+                <div class="stat-icon" style="font-size: 3rem; color: white; margin: 15px 0;"><i class="fas fa-file-contract"></i></div>
+                <div class="stat-label">PROGRAMAS DE DOBLE TITULACIÓN</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-target="122" data-prefix="+">0</div>
+                <div class="stat-icon" style="font-size: 3rem; color: white; margin: 15px 0;"><i class="fas fa-handshake"></i></div>
+                <div class="stat-label">CONVENIOS</div>
+            </div>
+        </div>
+
+        <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr); gap: 40px; max-width: 900px; margin: 0 auto;">
+            <div class="stat-item">
+                <div class="stat-number" data-target="28" data-prefix="+">0</div>
+                <div class="stat-icon" style="font-size: 3rem; color: white; margin: 15px 0;"><i class="fas fa-clipboard-list"></i></div>
+                <div class="stat-label">PROGRAMAS PREGRADO</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-target="29" data-prefix="+">0</div>
+                <div class="stat-icon" style="font-size: 3rem; color: white; margin: 15px 0;"><i class="fas fa-newspaper"></i></div>
+                <div class="stat-label">PROGRAMAS POSGRADOS</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-target="7" data-prefix="+">0</div>
+                <div class="stat-icon" style="font-size: 3rem; color: white; margin: 15px 0;"><i class="fas fa-award"></i></div>
+                <div class="stat-label">PROGRAMAS ACREDITADOS</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+<!-- Swiper JS -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicializar carrusel Tipos de Movilidad
+        const movilidadSwiper = new Swiper('.movilidad-swiper', {
+            slidesPerView: 1,
+            spaceBetween: 20,
+            loop: true,
+            centeredSlides: true,
+            speed: 800,
+            autoplay: {
+                delay: 4000,
+                disableOnInteraction: false,
+            },
+            pagination: {
+                el: '.movilidad-swiper .swiper-pagination',
+                clickable: true,
+            },
+            breakpoints: {
+                640: { slidesPerView: 2, spaceBetween: 20 },
+                768: { slidesPerView: 3, spaceBetween: 30 },
+                1024: { slidesPerView: 3, spaceBetween: 40 },
+            }
+        });
+
+        // Inicializar carrusel de galería estilo ruleta
+        const gallerySwiper = new Swiper('.gallery-swiper', {
+            loop: true,
+            slidesPerView: 3,
+            centeredSlides: true,
+            spaceBetween: 30,
+            grabCursor: true,
+            preloadImages: false,
+            lazy: true,
+            speed: 1000, 
+            autoplay: {
+                delay: 4000,
+                disableOnInteraction: false,
+            },
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+            breakpoints: {
+                320: {
+                    slidesPerView: 1,
+                    spaceBetween: 10
+                },
+                768: {
+                    slidesPerView: 2,
+                    spaceBetween: 20
+                },
+                1024: {
+                    slidesPerView: 3,
+                    spaceBetween: 30
+                }
+            }
+        });
+
+        // Inicializar carrusel de noticias
+        const newsSwiper = new Swiper('.news-swiper', {
+            loop: true,
+            spaceBetween: 30,
+            preloadImages: false,
+            lazy: true,
+            speed: 800, 
+            autoplay: {
+                delay: 7000,
+                disableOnInteraction: true,
+            },
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+            breakpoints: {
+                320: {
+                    slidesPerView: 1,
+                }
+            }
+        });
+    });
+</script>
+
+<!-- BOTÓN FLOTANTE DE SOPORTE -->
+<a href="https://wa.me/573153228453" class="support-float" target="_blank">
+    <i class="fab fa-whatsapp"></i>
+    <span class="support-tooltip">¿Necesitas ayuda?</span>
+</a>
+
+{% endblock %}

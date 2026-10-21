@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="admin-section" style="padding-top: 120px; background: #f4f7f6; min-height: 100vh;">
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; flex-wrap: wrap; gap: 15px;">
+            <h1 style="color: #1a2a3a; font-weight: 800; font-size: 1.8rem;"><i class="fas fa-briefcase" style="margin-right: 10px; color: #e63946;"></i> Gestión de Programas</h1>
+            <div class="admin-nav" style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <a href="{{ url_for('admin_nuevo_programa') }}" class="btn-admin-add">+ Nuevo Programa</a>
+                <a href="{{ url_for('coordinador_dashboard') }}" class="btn-admin-nav">Volver al Panel</a>
+            </div>
+        </div>
+
+        <div style="background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); overflow: hidden;">
+            <div style="padding: 0; overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; min-width: 700px;">
+                    <thead>
+                        <tr style="background: #1a2a3a; color: white;">
+                            <th style="padding: 20px 30px; text-align: left;">Imagen</th>
+                            <th style="padding: 20px 30px; text-align: left;">Nombre del Programa</th>
+                            <th style="padding: 20px 30px; text-align: left;">Tipo</th>
+                            <th style="padding: 20px 30px; text-align: left;">Dirigido a</th>
+                            <th style="padding: 20px 30px; text-align: left;">Postulaciones</th>
+                            <th style="padding: 20px 30px; text-align: left;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for programa in programas %}
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 20px 30px;">
+                                <img src="{{ programa.imagen_url }}" alt="{{ programa.nombre }}" style="width: 80px; height: 50px; object-fit: cover; border-radius: 8px;">
+                            </td>
+                            <td style="padding: 20px 30px; color: #333;"><strong>{{ programa.nombre }}</strong></td>
+                            <td style="padding: 20px 30px;">
+                                <span class="badge-pill" style="background: #e63946; color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; display: inline-block; white-space: nowrap; max-width: 200px; overflow: hidden; text-overflow: ellipsis;" title="{{ programa.tipo }}">{{ programa.tipo }}</span>
+                            </td>
+                            <td style="padding: 20px 30px;">
+                                <span class="badge-pill" style="background: #1a2a3a; color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; white-space: nowrap;">{{ programa.dirigido_a|title }}</span>
+                            </td>
+                            <td style="padding: 20px 30px; color: #333; text-align: center;">{{ programa.postulaciones|length }}</td>
+                            <td style="padding: 20px 30px;">
+                                <div style="display: flex; gap: 10px;">
+                                    <a href="{{ url_for('admin_editar_programa', id=programa.id) }}" class="btn-admin-edit">Editar</a>
+                                    <form action="{{ url_for('admin_eliminar_programa', id=programa.id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este programa?');">
+                                        <button type="submit" class="btn-admin-delete">Eliminar</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

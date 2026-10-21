@@ -1,0 +1,345 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="admin-section" style="padding-top: 120px; background: #f4f7f6; min-height: 100vh;">
+    <div class="container">
+        <div style="max-width: 800px; margin: 0 auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+                <h1 style="color: #1a2a3a; font-weight: 800;">{% if programa %}Editar Programa{% else %}Nuevo Programa{% endif %}</h1>
+                <a href="{{ url_for('admin_programas') }}" class="btn-admin-nav">Volver al Listado</a>
+            </div>
+
+            <div style="background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 40px;">
+                <div style="background: #1a2a3a; color: white; padding: 20px 30px;">
+                    <h2 style="font-size: 1.2rem; margin: 0;"><i class="fas fa-edit" style="margin-right: 10px;"></i> Información del Programa</h2>
+                </div>
+                <form id="mainForm" action="{% if programa %}{{ url_for('admin_editar_programa', id=programa.id) }}{% else %}{{ url_for('admin_nuevo_programa') }}{% endif %}" method="POST" enctype="multipart/form-data" style="padding: 40px;">
+                    <div class="form-grid-reg" style="margin-bottom: 30px;">
+                        <div class="form-group">
+                            <label>Nombre del Programa</label>
+                            <input type="text" name="nombre" value="{{ programa.nombre if programa else '' }}" required class="form-control" placeholder="Ej: Verano Científico 2026">
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-users" style="margin-right: 8px; color: #e63946;"></i> Dirigido a</label>
+                            <select name="dirigido_a" id="dirigido_a" required class="form-control">
+                                <option value="movilidad estudiantes" {% if programa and programa.dirigido_a == 'movilidad estudiantes' %}selected{% endif %}>Movilidad estudiantes</option>
+                                <option value="movilidad docentes" {% if programa and programa.dirigido_a == 'movilidad docentes' %}selected{% endif %}>Movilidad docentes/admin</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Tipo de Programa</label>
+                            <select name="tipo" id="tipo_programa" required class="form-control" data-selected="{{ programa.tipo if programa else '' }}">
+                                <!-- Options will be populated by JavaScript -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-calendar-times" style="margin-right: 8px; color: #e63946;"></i> Fecha Límite de Postulación</label>
+                            <input type="datetime-local" name="fecha_fin" value="{{ programa.fecha_fin.strftime('%Y-%m-%dT%H:%M') if programa and programa.fecha_fin else '' }}" class="form-control" title="Los estudiantes no podrán postularse después de esta fecha.">
+                            <small style="color: #888; margin-top: 5px;">Deje en blanco si no tiene fecha límite.</small>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="background: #f8f9fa; padding: 25px; border-radius: 15px; border: 1px solid #eee; margin-bottom: 30px;">
+                        <label style="margin-bottom: 15px; color: #1a2a3a; font-size: 1.1rem;"><i class="fas fa-image" style="margin-right: 10px; color: #e63946;"></i> Imagen del Programa</label>
+                        
+                        {% if programa and programa.imagen_url %}
+                            <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 15px;">
+                                <img src="{{ programa.imagen_url }}" style="height: 60px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                                <small style="color: #666;">Imagen actual</small>
+                            </div>
+                        {% endif %}
+
+                        <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 20px; align-items: center;">
+                            <div>
+                                <small style="display: block; margin-bottom: 8px; color: #777;">Subir archivo desde el dispositivo:</small>
+                                <input type="file" name="imagen_archivo" accept="image/*" class="form-control" style="padding: 8px;">
+                            </div>
+                            
+                            <div style="font-weight: 700; color: #999; font-size: 0.9rem;">O</div>
+                            
+                            <div>
+                                <small style="display: block; margin-bottom: 8px; color: #777;">Ingresar URL de imagen externa:</small>
+                                <input type="text" name="imagen_url" value="{{ programa.imagen_url if programa else '' }}" placeholder="https://ejemplo.com/foto.jpg" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Descripción del Programa</label>
+                        <textarea name="descripcion" rows="5" required class="form-control" placeholder="Describa de qué trata el programa...">{{ programa.descripcion if programa else '' }}</textarea>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 40px;">
+                        <label>Requisitos</label>
+                        <textarea name="requisitos" rows="3" class="form-control" placeholder="Ej: Promedio > 4.0, Estudiante activo...">{{ programa.requisitos if programa else '' }}</textarea>
+                    </div>
+
+                    <!-- Hidden field for form JSON -->
+                    <input type="hidden" name="formulario_json" id="formulario_json_input">
+
+                    <div style="background: #f8f9fa; border-radius: 15px; padding: 30px; border: 1px dashed #ccc; margin-bottom: 40px;">
+                        <h3 style="margin-top: 0; color: #1a2a3a; display: flex; align-items: center; justify-content: space-between;">
+                            <span><i class="fas fa-tasks"></i> Constructor de Formulario</span>
+                            <span style="font-size: 0.9rem; font-weight: normal; color: #666;">Diseña los campos que el postulante debe llenar</span>
+                        </h3>
+                        
+                        <style>
+                            @media (min-width: 550px) {
+                                .btn-archivo-grid {
+                                    grid-column: 2;
+                                }
+                            }
+                        </style>
+                        <div id="form-builder-controls" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                            <button type="button" class="btn-add-field" data-type="text" title="Campo para nombres, apellidos o respuestas cortas.">
+                                <i class="fas fa-font"></i> 
+                                <div><strong>Texto Corto</strong><small style="display: block; font-size: 0.7rem; color: #888;">Nombres, títulos...</small></div>
+                            </button>
+                            <button type="button" class="btn-add-field" data-type="textarea" title="Campo para párrafos o descripciones extensas.">
+                                <i class="fas fa-align-left"></i> 
+                                <div><strong>Texto Largo</strong><small style="display: block; font-size: 0.7rem; color: #888;">Descripciones, motivos...</small></div>
+                            </button>
+                            <button type="button" class="btn-add-field" data-type="date" title="Selección de fecha en calendario.">
+                                <i class="fas fa-calendar-alt"></i> 
+                                <div><strong>Fecha</strong><small style="display: block; font-size: 0.7rem; color: #888;">Día/Mes/Año</small></div>
+                            </button>
+                            <button type="button" class="btn-add-field" data-type="select" title="Lista desplegable con opciones predefinidas.">
+                                <i class="fas fa-list"></i> 
+                                <div><strong>Desplegable</strong><small style="display: block; font-size: 0.7rem; color: #888;">Elegir de una lista</small></div>
+                            </button>
+                            <button type="button" class="btn-add-field" data-type="radio" title="Botones circulares para elegir solo una opción.">
+                                <i class="fas fa-dot-circle"></i> 
+                                <div><strong>Opción Única</strong><small style="display: block; font-size: 0.7rem; color: #888;">Solo una respuesta</small></div>
+                            </button>
+                            <button type="button" class="btn-add-field" data-type="checkbox" title="Casillas para marcar una o varias opciones.">
+                                <i class="fas fa-check-square"></i> 
+                                <div><strong>Opción Múltiple</strong><small style="display: block; font-size: 0.7rem; color: #888;">Varias respuestas</small></div>
+                            </button>
+                            <button type="button" class="btn-add-field btn-archivo-grid" data-type="file" title="Subir documentos PDF, Word o ZIP.">
+                                <i class="fas fa-file-upload"></i> 
+                                <div><strong>Archivo</strong><small style="display: block; font-size: 0.7rem; color: #888;">PDF, Docs, ZIP...</small></div>
+                            </button>
+                        </div>
+
+                        <div id="form-preview-area" style="min-height: 200px; background: white; border-radius: 10px; padding: 20px; border: 1px solid #eee;">
+                            <!-- Fields will be added here -->
+                            <div id="no-fields-msg" style="text-align: center; color: #999; padding: 40px;">
+                                <i class="fas fa-i-cursor" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
+                                Aún no has agregado campos al formulario.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="text-align: right;">
+                        <button type="submit" class="btn-admin-save">
+                            {% if programa %}ACTUALIZAR PROGRAMA{% else %}CREAR PROGRAMA{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const formPreview = document.getElementById('form-preview-area');
+        const noFieldsMsg = document.getElementById('no-fields-msg');
+        const jsonInput = document.getElementById('formulario_json_input');
+        const mainForm = document.getElementById('mainForm');
+        
+        let fields = [];
+
+        // Load existing fields if editing
+        {% if programa and programa.formulario_json %}
+        try {
+            fields = JSON.parse('{{ programa.formulario_json | safe }}');
+            renderFields();
+        } catch (e) {
+            console.error("Error parsing form JSON:", e);
+        }
+        {% endif %}
+
+        // Add field buttons
+        document.querySelectorAll('.btn-add-field').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const type = this.getAttribute('data-type');
+                addField(type);
+            });
+        });
+
+        function addField(type) {
+            const newField = {
+                id: Date.now(),
+                type: type,
+                label: `Nuevo campo de ${type}`,
+                placeholder: '',
+                required: false,
+                options: (type === 'select' || type === 'radio' || type === 'checkbox') ? 'Opción 1, Opción 2' : ''
+            };
+            fields.push(newField);
+            renderFields();
+        }
+
+        function deleteField(id) {
+            fields = fields.filter(f => f.id !== id);
+            renderFields();
+        }
+
+        function updateField(id, key, value) {
+            const field = fields.find(f => f.id === id);
+            if (field) {
+                field[key] = value;
+            }
+        }
+
+        function renderFields() {
+            if (fields.length === 0) {
+                noFieldsMsg.style.display = 'block';
+                formPreview.querySelectorAll('.field-item').forEach(el => el.remove());
+                return;
+            }
+
+            noFieldsMsg.style.display = 'none';
+            
+            // Clear existing rendered fields except the message
+            formPreview.querySelectorAll('.field-item').forEach(el => el.remove());
+
+            fields.forEach((field, index) => {
+                const fieldEl = document.createElement('div');
+                fieldEl.className = 'field-item';
+                
+                let typeIcon = 'fa-font';
+                let typeDesc = '';
+                
+                switch(field.type) {
+                    case 'text': typeIcon = 'fa-font'; typeDesc = 'Respuesta corta de texto.'; break;
+                    case 'textarea': typeIcon = 'fa-align-left'; typeDesc = 'Párrafo largo de texto.'; break;
+                    case 'date': typeIcon = 'fa-calendar-alt'; typeDesc = 'Selección de fecha.'; break;
+                    case 'select': typeIcon = 'fa-list'; typeDesc = 'Lista de opciones desplegable.'; break;
+                    case 'radio': typeIcon = 'fa-dot-circle'; typeDesc = 'Elección de una única opción.'; break;
+                    case 'checkbox': typeIcon = 'fa-check-square'; typeDesc = 'Elección de una o varias opciones.'; break;
+                    case 'file': typeIcon = 'fa-file-upload'; typeDesc = 'Subida de documentos (PDF, Word, etc).'; break;
+                    case 'image': typeIcon = 'fa-image'; typeDesc = 'Carga de foto o enlace de imagen.'; break;
+                }
+
+                fieldEl.innerHTML = `
+                    <div class="field-actions">
+                        <button type="button" class="btn-action btn-delete" title="Eliminar"><i class="fas fa-trash"></i></button>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+                        <span style="background: #1a2a3a; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700;">${index + 1}</span>
+                        <div>
+                            <strong style="color: #1a2a3a; text-transform: uppercase; font-size: 0.85rem; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas ${typeIcon}"></i> ${field.type === 'file' ? 'ARCHIVO' : field.type.toUpperCase()}
+                            </strong>
+                            <small style="color: #666; font-size: 0.75rem;">${typeDesc}</small>
+                        </div>
+                    </div>
+                    
+                    <div class="field-config">
+                        <div class="config-row">
+                            <div class="config-group">
+                                <label>Etiqueta del Campo (Pregunta)</label>
+                                <input type="text" class="input-label" value="${field.label}" data-id="${field.id}" placeholder="Ej: Nombre completo, Adjunte su foto...">
+                            </div>
+                            <div class="config-group">
+                                <label>Texto de Ayuda (Opcional)</label>
+                                <input type="text" class="input-placeholder" value="${field.placeholder}" data-id="${field.id}" placeholder="Ej: Escriba aquí, Formato PDF...">
+                            </div>
+                        </div>
+                        
+                        <div class="config-row">
+                            <div class="config-group">
+                                <label>¿Este campo es obligatorio?</label>
+                                <select class="input-required" data-id="${field.id}">
+                                    <option value="false" ${!field.required ? 'selected' : ''}>No, es opcional</option>
+                                    <option value="true" ${field.required ? 'selected' : ''}>Sí, es obligatorio</option>
+                                </select>
+                            </div>
+                            ${(field.type === 'select' || field.type === 'radio' || field.type === 'checkbox') ? `
+                                <div class="config-group">
+                                    <label>Opciones (Separadas por comas)</label>
+                                    <input type="text" class="input-options" value="${field.options}" data-id="${field.id}" placeholder="Opción 1, Opción 2, Opción 3">
+                                </div>
+                            ` : ''}
+                            ${field.type === 'image' ? `
+                                <div class="config-group">
+                                    <label>Método de Carga</label>
+                                    <select class="input-options" data-id="${field.id}">
+                                        <option value="both" ${field.options === 'both' ? 'selected' : ''}>Ambos (Archivo o URL)</option>
+                                        <option value="file" ${field.options === 'file' ? 'selected' : ''}>Solo Archivo</option>
+                                        <option value="url" ${field.options === 'url' ? 'selected' : ''}>Solo URL</option>
+                                    </select>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+
+                // Add event listeners
+                fieldEl.querySelector('.btn-delete').addEventListener('click', () => deleteField(field.id));
+                
+                fieldEl.querySelector('.input-label').addEventListener('input', (e) => updateField(field.id, 'label', e.target.value));
+                fieldEl.querySelector('.input-placeholder').addEventListener('input', (e) => updateField(field.id, 'placeholder', e.target.value));
+                fieldEl.querySelector('.input-required').addEventListener('change', (e) => updateField(field.id, 'required', e.target.value === 'true'));
+                
+                if (field.type === 'select' || field.type === 'radio' || field.type === 'checkbox') {
+                    fieldEl.querySelector('.input-options').addEventListener('input', (e) => updateField(field.id, 'options', e.target.value));
+                }
+
+                formPreview.appendChild(fieldEl);
+            });
+        }
+
+        // Handle form submission
+        mainForm.addEventListener('submit', function(e) {
+            // Serialize fields to JSON
+            jsonInput.value = JSON.stringify(fields);
+        });
+
+        // Dynamic select logic for Tipo de Programa
+        const dirigidoASelect = document.getElementById('dirigido_a');
+        const tipoProgramaSelect = document.getElementById('tipo_programa');
+        const selectedTipo = tipoProgramaSelect.getAttribute('data-selected');
+
+        const opcionesEstudiantes = [
+            "Intercambio semestral",
+            "Pasantía de investigación UNISINU",
+            "Voluntariado",
+            "Internado rotatorio (solo estudiantes de medicina)",
+            "Rotaciones posgrado medico quirurgico (solo post grado medico)",
+            "Programa Delfín"
+        ];
+        
+        const opcionesDocentes = [
+            "Movilidad docente"
+        ];
+
+        function actualizarTiposPrograma() {
+            tipoProgramaSelect.innerHTML = '';
+            let opciones = [];
+            
+            if (dirigidoASelect.value === 'movilidad estudiantes') {
+                opciones = opcionesEstudiantes;
+            } else if (dirigidoASelect.value === 'movilidad docentes') {
+                opciones = opcionesDocentes;
+            }
+
+            opciones.forEach(function(opcion) {
+                const optionElement = document.createElement('option');
+                optionElement.value = opcion;
+                optionElement.textContent = opcion;
+                if (opcion === selectedTipo) {
+                    optionElement.selected = true;
+                }
+                tipoProgramaSelect.appendChild(optionElement);
+            });
+        }
+
+        dirigidoASelect.addEventListener('change', actualizarTiposPrograma);
+        // Initialize on load
+        actualizarTiposPrograma();
+    });
+</script>
+{% endblock %}

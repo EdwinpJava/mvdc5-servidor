@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Registro SuperAdmin{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 120px; min-height: 80vh; display: flex; justify-content: center; align-items: center;">
+    <div style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px;">
+        <div style="text-center; margin-bottom: 30px; display: flex; flex-direction: column; align-items: center;">
+            <i class="fas fa-user-shield" style="font-size: 3rem; color: #850000; margin-bottom: 15px;"></i>
+            <h3 class="text-center" style="color: #333; font-weight: bold; margin: 0;">Acceso Interno</h3>
+            <p class="text-center" style="color: #888; font-size: 0.9rem; margin-top: 5px;">Registro de Administrador del Sistema</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('registro_superadmin') }}">
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label for="email" style="color: #555; font-size: 0.9rem; font-weight: 600; margin-bottom: 8px; display: block;">Correo Electrónico</label>
+                <div style="position: relative;">
+                    <i class="fas fa-envelope" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #888;"></i>
+                    <input type="email" id="email" name="email" required style="width: 100%; padding: 12px 15px 12px 40px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; outline: none; transition: border-color 0.3s; box-sizing: border-box;" onfocus="this.style.borderColor='#850000'" onblur="this.style.borderColor='#ddd'">
+                </div>
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 30px;">
+                <label for="password" style="color: #555; font-size: 0.9rem; font-weight: 600; margin-bottom: 8px; display: block;">Contraseña</label>
+                <div style="position: relative;">
+                    <i class="fas fa-lock" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #888;"></i>
+                    <input type="password" id="password" name="password" required style="width: 100%; padding: 12px 15px 12px 40px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; outline: none; transition: border-color 0.3s; box-sizing: border-box;" onfocus="this.style.borderColor='#850000'" onblur="this.style.borderColor='#ddd'">
+                </div>
+            </div>
+            
+            <button type="submit" style="background: #850000; border: none; padding: 14px; border-radius: 8px; color: white; font-weight: bold; width: 100%; cursor: pointer; font-size: 1rem; transition: background 0.3s;" onmouseover="this.style.background='#6a0000'" onmouseout="this.style.background='#850000'">
+                Crear Cuenta SuperAdmin
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

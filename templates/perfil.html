@@ -1,0 +1,470 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='perfil.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+{% endblock %}
+
+{% block content %}
+<section class="profile-section section-padding">
+    <div class="container">
+        <div class="profile-header reveal">
+            <h1 data-i18n="prof-title">Mi Perfil Académico</h1>
+            <div class="line-accent"></div>
+            <p data-i18n="prof-subtitle">Gestiona tu información personal y académica para tus postulaciones.</p>
+        </div>
+
+        <div class="profile-grid reveal">
+            <!-- Sidebar del perfil -->
+            <div class="profile-sidebar">
+                <div class="user-card">
+                    <div style="position: relative; width: 120px; height: 120px; margin: 0 auto 15px;">
+                        <div class="user-avatar" style="position: relative; overflow: hidden; border-radius: 50%; width: 100%; height: 100%; cursor: pointer; border: 4px solid #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.1);" onclick="document.getElementById('foto_perfil_input').click();" title="Click para cambiar foto">
+                            {% if usuario.foto_perfil %}
+                                <img src="{{ url_for('static', filename=usuario.foto_perfil) }}?v={{ range(1, 100000) | random }}" alt="Foto de perfil" style="width: 100%; height: 100%; object-fit: cover;">
+                            {% else %}
+                                <i class="fas fa-user-circle" style="font-size: 120px; color: #e63946; line-height: 1;"></i>
+                            {% endif %}
+                            <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); color: white; font-size: 0.7rem; padding: 5px 0; text-align: center; opacity: 0; transition: opacity 0.3s;" class="avatar-overlay">
+                                <i class="fas fa-camera"></i> Cambiar
+                            </div>
+                        </div>
+                        
+                        {% if usuario.foto_perfil %}
+                        <form action="{{ url_for('eliminar_foto_perfil') }}" method="POST" style="position: absolute; bottom: -5px; right: -5px;">
+                            <button type="submit" style="background: #e63946; color: white; border: 2px solid white; border-radius: 50%; width: 32px; height: 32px; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);" title="Eliminar foto" onclick="return confirm('¿Seguro que deseas eliminar tu foto de perfil?');">
+                                <i class="fas fa-trash-alt" style="font-size: 0.8rem;"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                    
+                    <form id="fotoPerfilForm" action="{{ url_for('subir_foto_perfil') }}" method="POST" enctype="multipart/form-data" style="display: none;">
+                        <input type="file" id="foto_perfil_input" accept="image/*">
+                        <input type="hidden" name="foto_perfil_base64" id="foto_perfil_base64">
+                    </form>
+                    <style>
+                        .user-avatar:hover .avatar-overlay { opacity: 1 !important; }
+                    </style>
+                    <h3>{{ usuario.nombre }}</h3>
+                    <p class="user-role badge-pill">
+                        {% if usuario.rol == 'coordinador_area' %}
+                            C.A
+                        {% elif usuario.rol == 'docente' %}
+                            Docente/Admin
+                        {% elif usuario.rol == 'superadmin' %}
+                            Administrador del Sistema
+                        {% else %}
+                            {{ usuario.rol.capitalize() }}
+                        {% endif %}
+                    </p>
+                    {% if usuario.rol not in ['coordinador_ori', 'superadmin'] %}
+                    <div class="user-stats">
+                        <div class="stat">
+                            <span class="stat-value">{{ postulaciones|length }}</span>
+                            <span class="stat-label" data-i18n="prof-stat-apps">Postulaciones</span>
+                        </div>
+                    </div>
+                    <button class="btn-primary" style="width: 100%; margin-top: 15px; border-radius: 25px; font-weight: 600; font-size: 0.9rem;" onclick="abrirModalPostulaciones()">
+                        <i class="fas fa-list-alt"></i> Ver Mis Postulaciones
+                    </button>
+                    {% endif %}
+                </div>
+                
+                <nav class="profile-nav">
+                    <a href="#datos-personales" class="active"><i class="fas fa-id-card"></i> <span data-i18n="prof-nav-personal">Datos Personales</span></a>
+                    {% if usuario.rol not in ['coordinador_ori', 'coordinador_area', 'superadmin'] %}
+                    <a href="#" onclick="abrirModalPostulaciones(); return false;"><i class="fas fa-history"></i> Mis Postulaciones</a>
+                    {% endif %}
+                    <a href="#" onclick="abrirModalPassword(); return false;"><i class="fas fa-key"></i> Cambiar Contraseña</a>
+                    <a href="{{ url_for('logout') }}" class="logout-link"><i class="fas fa-sign-out-alt"></i> <span data-i18n="prof-nav-logout">Cerrar Sesión</span></a>
+                </nav>
+            </div>
+
+            <!-- Contenido del perfil -->
+            <div class="profile-content">
+                <div class="content-card reveal">
+                    <div class="card-header">
+                        <h2><i class="fas fa-user-circle"></i> <span data-i18n="prof-update-title">Mi Perfil</span></h2>
+                    </div>
+                    <form action="{{ url_for('perfil') }}" method="POST" class="profile-form">
+                        <div class="form-section">
+                            <h3 data-i18n="prof-sec-general">Datos Generales</h3>
+                            <div class="form-grid">
+                                <div class="input-group">
+                                    <label for="nombre" data-i18n="prof-label-name">Nombre Completo</label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-user"></i>
+                                        <input type="text" id="nombre" name="nombre" value="{{ usuario.nombre }}" readonly style="background-color: #f8f9fa; cursor: not-allowed; color: #6c757d;">
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label for="email" data-i18n="prof-label-email">Correo Electrónico</label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-envelope"></i>
+                                        <input type="email" id="email" value="{{ usuario.email }}" disabled style="background-color: #f8f9fa; cursor: not-allowed; color: #6c757d;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3 data-i18n="prof-sec-academic">Información Académica</h3>
+                            <div class="form-grid">
+                                <div class="input-group">
+                                    <label for="universidad" data-i18n="prof-label-uni">Universidad</label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-university"></i>
+                                        <input type="text" id="universidad" name="universidad" value="{{ usuario.universidad or '' }}" readonly style="background-color: #f8f9fa; cursor: not-allowed; color: #6c757d;">
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label for="carrera" data-i18n="prof-label-career">Carrera / Programa</label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-graduation-cap"></i>
+                                        <input type="text" id="carrera" name="carrera" value="{{ usuario.carrera or '' }}" readonly style="background-color: #f8f9fa; cursor: not-allowed; color: #6c757d;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- La sección historial-postulaciones ha sido movida a un modal -->
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Modal de Mis Postulaciones -->
+{% if usuario.rol not in ['coordinador_ori'] %}
+<div id="modal-postulaciones" class="modal">
+    <div class="modal-content" style="max-width: 800px; max-height: 80vh; overflow-y: auto;">
+        <span class="close" onclick="cerrarModalPostulaciones()">&times;</span>
+        <h2 style="color: #2c3e50; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px;"><i class="fas fa-history"></i> Mis Postulaciones</h2>
+        
+        <div style="padding: 10px;">
+            {% if postulaciones %}
+                <div class="postulaciones-list">
+                    {% for postu in postulaciones %}
+                        <div class="postulacion-item" style="padding: 20px; border-bottom: 1px solid #eee; margin-bottom: 15px; background: #fdfdfd; border-radius: 10px; border: 1px solid #f0f0f0; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div class="postu-info">
+                                    <h4 style="color: #1a2a3a; margin-bottom: 5px;">{{ postu.programa.nombre }}</h4>
+                                    <p style="font-size: 0.85rem; color: #777;"><span data-i18n="prof-postu-date">Fecha</span>: {{ postu.fecha_postulacion.strftime('%d/%m/%Y') }}</p>
+                                </div>
+                                <div class="postu-status" style="text-align: right;">
+                                    <span class="badge-pill" style="
+                                        background: {% if postu.estado == 'pendiente_ori' %}#f1c40f
+                                        {% elif postu.estado == 'espera_ori' %}#e67e22
+                                        {% elif postu.estado == 'candidato' %}#3498db
+                                        {% elif postu.estado == 'aprobado_jefe' %}#2ecc71
+                                        {% else %}#e74c3c{% endif %}; 
+                                        color: white; padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; display: inline-block; white-space: nowrap; text-align: center; min-width: 80px;">
+                                        {{ postu.estado.replace('_ori', '').replace('_jefe', '').replace('_', ' ').upper() }}
+                                    </span>
+                                    {% if postu.estado not in ['rechazado_ori', 'rechazado_jefe', 'aprobado_ori', 'aprobado_jefe'] %}
+                                    <div style="margin-top: 10px;">
+                                        <a href="{{ url_for('editar_postulacion', id=postu.id) }}" style="font-size: 0.75rem; background: #e63946; color: white; padding: 5px 12px; border-radius: 15px; text-decoration: none; font-weight: bold; display: inline-block; transition: background 0.3s;"><i class="fas fa-edit"></i> Editar Respuestas</a>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="postu-details" style="margin-top: 15px; border-top: 1px dashed #eee; padding-top: 15px;">
+                                {% if postu.comentarios %}
+                                <div class="postu-comments">
+                                    <p><strong><i class="fas fa-comment-dots"></i> Observación ORI:</strong> {{ postu.comentarios }}</p>
+                                </div>
+                                {% endif %}
+                                {% if postu.observacion_jefe %}
+                                <div class="postu-comments" style="margin-top: 5px;">
+                                    <p><strong><i class="fas fa-comment-dots"></i> Observación C.A:</strong> {{ postu.observacion_jefe }}</p>
+                                </div>
+                                {% endif %}
+                                {% if postu.carta_ori_1_url or postu.carta_ori_2_url %}
+                                <div class="doc-container">
+                                    <h5 class="doc-title"><i class="fas fa-paperclip"></i> Documentos Adjuntos</h5>
+                                    <div class="doc-buttons-wrapper">
+                                        {% if postu.carta_ori_1_url %}
+                                        <a href="javascript:void(0);" onclick="abrirVisorArchivo('{{ postu.carta_ori_1_url }}', 'Carta ORI 1')" class="btn-documento">
+                                            <i class="fas fa-file-pdf"></i> Carta ORI 1
+                                        </a>
+                                        {% endif %}
+                                        {% if postu.carta_ori_2_url %}
+                                        <a href="javascript:void(0);" onclick="abrirVisorArchivo('{{ postu.carta_ori_2_url }}', 'Carta ORI 2')" class="btn-documento">
+                                            <i class="fas fa-file-pdf"></i> Carta ORI 2
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div style="text-align: center; padding: 40px; color: #777;">
+                    <i class="fas fa-folder-open" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.3;"></i>
+                    <p data-i18n="prof-empty-postu">Aún no te has postulado a ningún programa.</p>
+                    <a href="{{ url_for('programas') }}" class="btn-primary" style="margin-top: 20px;" data-i18n="prof-explore-btn">Explorar Programas</a>
+                </div>
+            {% endif %}
+        </div>
+        <div style="display: flex; justify-content: flex-end; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
+            <button type="button" class="btn-cancelar-modal" onclick="cerrarModalPostulaciones()">Cerrar</button>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Modal de Cambio de Contraseña -->
+<div id="modal-password" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+        <span class="close" onclick="cerrarModalPassword()">&times;</span>
+        <h2 style="color: #e74c3c; margin-bottom: 20px;"><i class="fas fa-key"></i> Cambiar Contraseña</h2>
+        
+        <form action="{{ url_for('perfil') }}" method="POST" class="profile-form" id="form-cambio-password" onsubmit="return validarPasswordPerfil(event)">
+            <div class="form-section" style="margin-bottom: 0;">
+                <div class="input-group" style="margin-bottom: 15px;">
+                    <label for="password_actual" data-i18n="prof-label-pwd-actual">Contraseña Actual</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="password_actual" name="password_actual" placeholder="Ingrese su contraseña actual" required>
+                    </div>
+                </div>
+                <div class="input-group" style="margin-bottom: 15px;">
+                    <label for="nueva_password" data-i18n="prof-label-pwd-new">Nueva Contraseña</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-key"></i>
+                        <input type="password" id="nueva_password" name="nueva_password" placeholder="Mínimo 8 caracteres, mayúscula, minúscula, número y especial" required>
+                    </div>
+                </div>
+                <div class="input-group" style="margin-bottom: 25px;">
+                    <label for="confirmar_password" data-i18n="prof-label-pwd-confirm">Confirmar Nueva Contraseña</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-check-circle"></i>
+                        <input type="password" id="confirmar_password" name="confirmar_password" placeholder="Repita la nueva contraseña" required>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 15px; margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
+                <button type="button" class="btn-cancelar-modal" onclick="cerrarModalPassword()">Cancelar</button>
+                <button type="submit" class="btn-guardar-modal">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function validarPasswordPerfil(event) {
+    const form = document.getElementById('form-cambio-password');
+    const passwordActual = form.querySelector('#password_actual').value;
+    const nuevaPassword = form.querySelector('#nueva_password').value;
+    const confirmarPassword = form.querySelector('#confirmar_password').value;
+    
+    if (nuevaPassword !== confirmarPassword) {
+        event.preventDefault();
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Las contraseñas no coinciden.',
+            confirmButtonColor: '#850000',
+            target: document.getElementById('modal-password')
+        });
+        return false;
+    }
+
+    if (passwordActual === nuevaPassword) {
+        event.preventDefault();
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'La nueva contraseña no puede ser igual a la actual.',
+            confirmButtonColor: '#850000',
+            target: document.getElementById('modal-password')
+        });
+        return false;
+    }
+    
+    let errores = [];
+    
+    if (nuevaPassword.length < 8) {
+        errores.push("Al menos 8 caracteres.");
+    }
+    if (!/[A-Z]/.test(nuevaPassword)) {
+        errores.push("Al menos una letra mayúscula.");
+    }
+    if (!/[a-z]/.test(nuevaPassword)) {
+        errores.push("Al menos una letra minúscula.");
+    }
+    if (!/\d/.test(nuevaPassword)) {
+        errores.push("Al menos un número.");
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(nuevaPassword)) {
+        errores.push("Al menos un carácter especial (!@#$%^&*...).");
+    }
+    
+    if (errores.length > 0) {
+        event.preventDefault();
+        
+        Swal.fire({
+            icon: 'error',
+            title: 'Contraseña insegura',
+            html: '<p>La contraseña debe cumplir con lo siguiente:</p><ul style="text-align: left;"><li>' + errores.join('</li><li>') + '</li></ul>',
+            confirmButtonColor: '#850000',
+            target: document.getElementById('modal-password')
+        });
+        
+        return false;
+    }
+    
+    return true;
+}
+</script>
+
+<!-- Modal Visor de Archivos -->
+<div id="modal-visor-archivo" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center;">
+    <div style="background: white; width: 90%; max-width: 1000px; height: 90vh; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column;">
+        <div style="background: #1a2a3a; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
+            <h3 id="visor-titulo" style="margin: 0; font-size: 1.2rem;">Visor de Documento</h3>
+            <button type="button" onclick="cerrarVisorArchivo()" style="background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">&times;</button>
+        </div>
+        <div style="flex-grow: 1; padding: 0; background: #f0f0f0;">
+            <iframe id="visor-iframe" src="" style="width: 100%; height: 100%; border: none;"></iframe>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para recortar imagen -->
+<div id="cropperModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center; padding: 20px;">
+    <div style="background: white; width: 100%; max-width: 600px; border-radius: 15px; box-shadow: 0 15px 40px rgba(0,0,0,0.3); overflow: hidden; display: flex; flex-direction: column;">
+        <div style="background: #1a2a3a; color: white; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="margin: 0; font-size: 1.1rem;"><i class="fas fa-crop" style="margin-right: 10px;"></i> Ajustar Imagen</h2>
+            <button onclick="cerrarCropperModal()" style="background: transparent; border: none; color: white; font-size: 1.5rem; cursor: pointer;">&times;</button>
+        </div>
+        <div style="padding: 20px; max-height: 60vh; overflow: hidden; display: flex; justify-content: center; align-items: center; background: #f8f9fa;">
+            <div style="max-width: 100%; max-height: 100%;">
+                <img id="image-to-crop" src="" style="max-width: 100%; display: block;">
+            </div>
+        </div>
+        <div style="padding: 15px 25px; background: #fff; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 10px;">
+            <button onclick="cerrarCropperModal()" class="btn-secondary" style="padding: 8px 15px; border-radius: 8px;">Cancelar</button>
+            <button onclick="cropAndSubmit()" class="btn-primary" style="padding: 8px 15px; border-radius: 8px; background: #e63946; border-color: #e63946;"><i class="fas fa-check"></i> Guardar</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script>
+    let cropper;
+    const fotoInput = document.getElementById('foto_perfil_input');
+    const imageToCrop = document.getElementById('image-to-crop');
+    const cropperModal = document.getElementById('cropperModal');
+
+    fotoInput.addEventListener('change', function (e) {
+        const files = e.target.files;
+        if (files && files.length > 0) {
+            const file = files[0];
+            const url = URL.createObjectURL(file);
+            imageToCrop.src = url;
+            cropperModal.style.display = 'flex';
+            
+            if (cropper) {
+                cropper.destroy();
+            }
+            
+            // Inicializar Cropper.js después de que la imagen se cargue
+            setTimeout(() => {
+                cropper = new Cropper(imageToCrop, {
+                    aspectRatio: 1, // Cuadrado perfecto (como WhatsApp)
+                    viewMode: 1,
+                    dragMode: 'move',
+                    autoCropArea: 0.8,
+                    restore: false,
+                    guides: true,
+                    center: true,
+                    highlight: false,
+                    cropBoxMovable: true,
+                    cropBoxResizable: true,
+                    toggleDragModeOnDblclick: false,
+                });
+            }, 100);
+        }
+    });
+
+    function cerrarCropperModal() {
+        cropperModal.style.display = 'none';
+        if (cropper) {
+            cropper.destroy();
+            cropper = null;
+        }
+        fotoInput.value = ''; // Limpiar el input
+    }
+
+    function cropAndSubmit() {
+        if (!cropper) return;
+        
+        // Obtener el canvas recortado
+        const canvas = cropper.getCroppedCanvas({
+            width: 400,
+            height: 400,
+            imageSmoothingEnabled: true,
+            imageSmoothingQuality: 'high',
+        });
+        
+        // Convertir a base64
+        const base64Image = canvas.toDataURL('image/jpeg', 0.9);
+        
+        // Asignar al input oculto y enviar el formulario
+        document.getElementById('foto_perfil_base64').value = base64Image;
+        document.getElementById('fotoPerfilForm').submit();
+    }
+    function abrirModalPassword() {
+        document.getElementById('modal-password').style.display = 'flex';
+    }
+
+    function cerrarModalPassword() {
+        document.getElementById('modal-password').style.display = 'none';
+    }
+
+    function abrirModalPostulaciones() {
+        document.getElementById('modal-postulaciones').style.display = 'flex';
+    }
+
+    function cerrarModalPostulaciones() {
+        document.getElementById('modal-postulaciones').style.display = 'none';
+    }
+
+    // Cerrar los modales si se hace clic fuera de ellos
+    window.onclick = function(event) {
+        var modalPassword = document.getElementById('modal-password');
+        var modalPostulaciones = document.getElementById('modal-postulaciones');
+        if (event.target == modalPassword) {
+            modalPassword.style.display = "none";
+        }
+        if (event.target == modalPostulaciones) {
+            modalPostulaciones.style.display = "none";
+        }
+    }
+
+    function abrirVisorArchivo(url, titulo) {
+        document.getElementById('visor-titulo').textContent = titulo || 'Visor de Documento';
+        document.getElementById('visor-iframe').src = url;
+        document.getElementById('modal-visor-archivo').style.display = 'flex';
+    }
+
+    function cerrarVisorArchivo() {
+        document.getElementById('modal-visor-archivo').style.display = 'none';
+        document.getElementById('visor-iframe').src = '';
+    }
+
+    // Cerrar visor al hacer clic fuera del contenido
+    window.addEventListener('click', function(event) {
+        const modalVisor = document.getElementById('modal-visor-archivo');
+        if (event.target === modalVisor) {
+            cerrarVisorArchivo();
+        }
+    });
+</script>
+{% endblock %}

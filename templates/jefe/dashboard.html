@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="admin-section jefe-dashboard" style="padding-top: 120px; background: #f4f7f6; min-height: 100vh;">
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; flex-wrap: wrap; gap: 15px;">
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <h1 style="color: #1a2a3a; font-weight: 800; font-size: 1.8rem;"><i class="fas fa-chalkboard-teacher" style="margin-right: 10px; color: #e63946;"></i> Panel de C.A</h1>
+                <a href="{{ url_for('chat_estrategico') }}" class="btn-admin-nav" style="background: #1a2a3a; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 0.9rem;"><i class="fas fa-comments"></i> Chat Estratégico</a>
+            </div>
+            <p style="font-size: 1.2rem; font-weight: bold; color: #34495e; margin: 0;">Programa: {{ carrera }}</p>
+        </div>
+
+        <!-- Stats Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; margin-bottom: 50px;">
+            <div style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); text-align: center; border-bottom: 5px solid #f1c40f;">
+                <i class="fas fa-file-alt" style="font-size: 2.5rem; color: #f1c40f; margin-bottom: 15px;"></i>
+                <h3 style="font-size: 2.5rem; margin: 0; color: #1a2a3a;">{{ total_candidatos }}</h3>
+                <p style="color: #777; margin: 0;">Candidatos por Revisar</p>
+            </div>
+            <div style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); text-align: center; border-bottom: 5px solid #3498db;">
+                <i class="fas fa-list-ol" style="font-size: 2.5rem; color: #3498db; margin-bottom: 15px;"></i>
+                <h3 style="font-size: 2.5rem; margin: 0; color: #1a2a3a;">{{ postulaciones|length }}</h3>
+                <p style="color: #777; margin: 0;">Total de Candidatos Históricos</p>
+            </div>
+        </div>
+
+        <div style="background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); overflow: hidden;">
+            <div style="padding: 0; overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; min-width: 700px; font-size: 0.85rem;">
+                    <thead>
+                        <tr style="background: #1a2a3a; color: white;">
+                            <th style="padding: 12px 15px; text-align: left;">Candidato</th>
+                            <th style="padding: 12px 15px; text-align: left;">Programa</th>
+                            <th style="padding: 12px 15px; text-align: left;">Datos Académicos</th>
+                            <th style="padding: 12px 15px; text-align: left;">Respuestas Formulario</th>
+                            <th style="padding: 12px 15px; text-align: left;">Estado</th>
+                            <th style="padding: 12px 15px; text-align: left;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for postu in postulaciones %}
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 12px 15px; color: #333;">
+                                <strong>{{ postu.estudiante.nombre }}</strong><br>
+                                <small style="color: #777;">{{ postu.estudiante.email }}</small>
+                            </td>
+                            <td style="padding: 12px 15px; color: #333;">{{ postu.programa.nombre }}</td>
+                            <td style="padding: 12px 15px; color: #555;">
+                                 <button type="button" onclick="verDatosAcademicos('{{ postu.estudiante.nombre }}', '{{ postu.estudiante.universidad or 'N/A' }}', '{{ postu.estudiante.carrera or 'N/A' }}')" class="btn-admin-view" style="padding: 4px 8px; font-size: 0.7rem;">
+                                     <i class="fas fa-university"></i> Ver Datos
+                                 </button>
+                             </td>
+                            <td style="padding: 12px 15px; color: #555;">
+                                <button type="button" onclick="verDetalles('{{ postu.id }}')" class="btn-admin-view" style="padding: 4px 8px; font-size: 0.7rem;">
+                                    <i class="fas fa-eye"></i> Ver Respuestas
+                                </button>
+                                <div id="detalles-{{ postu.id }}" style="display: none;">
+                                    {{ postu.datos_formulario_json }}
+                                </div>
+                                <div id="archivos-{{ postu.id }}" style="display: none;">
+                                    {{ postu.archivos_json }}
+                                </div>
+                            </td>
+                            <td style="padding: 12px 15px;">
+                                <span class="badge-pill" style="
+                                    background: {% if postu.estado in ['pendiente_ori', 'espera_ori'] %}#f1c40f
+                                    {% elif postu.estado == 'candidato' %}#3498db
+                                    {% elif postu.estado == 'aprobado_jefe' %}#2ecc71
+                                    {% else %}#e74c3c{% endif %}; 
+                                    color: white; padding: 3px 8px; border-radius: 20px; font-size: 0.65rem; font-weight: 700; display: inline-block; white-space: nowrap; text-align: center; min-width: 60px;">
+                                    {{ postu.estado.replace('_ori', '').replace('_jefe', '').replace('_', ' ').upper() }}
+                                </span>
+                            </td>
+                            <td style="padding: 12px 15px;">
+                                <form action="{{ url_for('jefe_cambiar_estado_postulacion', id=postu.id) }}" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 4px; min-width: 140px;">
+                                    <select name="estado" id="estado_{{ postu.id }}" onchange="toggleFields('{{ postu.id }}')" style="padding: 4px; border-radius: 6px; border: 1px solid #ddd; font-size: 0.7rem; background: white; cursor: pointer;">
+                                        <option value="candidato" {% if postu.estado == 'candidato' %}selected{% endif %}>En Revisión (Candidato)</option>
+                                        <option value="aprobado_jefe" {% if postu.estado == 'aprobado_jefe' %}selected{% endif %}>Aprobar (Requiere Carta)</option>
+                                        <option value="rechazado_jefe" {% if postu.estado == 'rechazado_jefe' %}selected{% endif %}>Rechazar (Requiere Observación)</option>
+                                    </select>
+                                    
+                                    <div id="carta_div_{{ postu.id }}" style="display: {% if postu.estado == 'aprobado_jefe' %}flex{% else %}none{% endif %}; flex-direction: column; gap: 4px;">
+                                        {% if postu.carta_jefe_url %}
+                                            <div style="margin-bottom: 2px;">
+                                                <a href="{{ postu.carta_jefe_url }}" target="_blank" style="color: #2ecc71; font-size: 0.65rem; font-weight: bold; text-decoration: none; background: #e8f8f5; padding: 2px 6px; border-radius: 4px;"><i class="fas fa-file-download"></i> Carta Actual</a>
+                                            </div>
+                                        {% endif %}
+                                        <label style="font-size: 0.65rem; color: #555;">Subir Nueva Carta (PDF/Doc):</label>
+                                        <input type="file" name="carta_archivo" accept=".pdf,.doc,.docx" style="font-size: 0.65rem;">
+                                    </div>
+                                    
+                                    <div id="obs_div_{{ postu.id }}" style="display: {% if postu.estado == 'rechazado_jefe' %}flex{% else %}none{% endif %}; flex-direction: column; gap: 4px;">
+                                        <textarea name="observacion_jefe" placeholder="Motivo del rechazo..." style="padding: 4px; border-radius: 5px; border: 1px solid #ddd; font-size: 0.7rem; resize: vertical; height: 35px;">{{ postu.observacion_jefe or '' }}</textarea>
+                                    </div>
+                                    
+                                    <button type="submit" class="btn-admin-update" style="padding: 4px 8px; font-size: 0.7rem;">Actualizar</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Modal para ver detalles -->
+<div id="modal-detalles" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center; padding: 20px;">
+    <div style="background: white; width: 100%; max-width: 600px; border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.2); overflow: hidden; position: relative; max-height: 90vh; display: flex; flex-direction: column;">
+        <div style="background: #1a2a3a; color: white; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="margin: 0; font-size: 1.2rem;"><i class="fas fa-clipboard-list" style="margin-right: 10px;"></i> Respuestas del Formulario</h2>
+            <button onclick="cerrarModal()" style="background: transparent; border: none; color: white; font-size: 1.5rem; cursor: pointer;">&times;</button>
+        </div>
+        <div id="modal-content-area" style="padding: 30px; overflow-y: auto;">
+            <!-- Contenido dinámico -->
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleFields(id) {
+        const select = document.getElementById('estado_' + id);
+        const cartaDiv = document.getElementById('carta_div_' + id);
+        const obsDiv = document.getElementById('obs_div_' + id);
+        
+        if (select.value === 'aprobado_jefe') {
+            cartaDiv.style.display = 'flex';
+            obsDiv.style.display = 'none';
+        } else if (select.value === 'rechazado_jefe') {
+            cartaDiv.style.display = 'none';
+            obsDiv.style.display = 'flex';
+        } else {
+            cartaDiv.style.display = 'none';
+            obsDiv.style.display = 'none';
+        }
+    }
+
+    function verDetalles(id) {
+        const modal = document.getElementById('modal-detalles');
+        const content = document.getElementById('modal-content-area');
+        
+        const datosRaw = document.getElementById(`detalles-${id}`).textContent;
+        const archivosRaw = document.getElementById(`archivos-${id}`).textContent;
+        
+        let html = '<div style="margin-bottom: 25px; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px;"><h3 style="color: #1a2a3a; margin: 0; font-size: 1.1rem;">Datos del Formulario</h3></div>';
+        
+        try {
+            const datos = JSON.parse(datosRaw);
+            if (Object.keys(datos).length === 0) {
+                html += '<p style="color: #777; font-style: italic;">No hay datos adicionales.</p>';
+            } else {
+                html += '<table style="width: 100%; border-collapse: collapse;">';
+                for (const [key, value] of Object.entries(datos)) {
+                    let displayValue = value || '---';
+                    if (value && (value.match(/\.(jpeg|jpg|gif|png)$/i) || value.includes('/uploads/postulaciones/'))) {
+                        displayValue = `<a href="${value}" target="_blank"><img src="${value}" style="max-width: 150px; max-height: 100px; border-radius: 8px; border: 1px solid #ddd; object-fit: cover;"></a>`;
+                    }
+                    html += `<tr><td style="padding: 12px 0; color: #666; width: 40%; font-weight: 600;">${key}:</td><td style="padding: 12px 0; color: #333;">${displayValue}</td></tr>`;
+                }
+                html += '</table>';
+            }
+            
+            const archivos = JSON.parse(archivosRaw);
+            if (Object.keys(archivos).length > 0) {
+                html += '<div style="margin: 30px 0 15px; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px;"><h3 style="color: #1a2a3a; margin: 0; font-size: 1.1rem;">Archivos Adjuntos</h3></div>';
+                for (const [key, url] of Object.entries(archivos)) {
+                    html += `<a href="${url}" target="_blank" style="display: block; margin-bottom: 10px;"><i class="fas fa-file-download"></i> ${key}</a>`;
+                }
+            }
+        } catch (e) {
+            html = '<p style="color: #e63946;">Error al cargar los datos: ' + e.message + '</p>';
+        }
+        
+        content.innerHTML = html;
+        modal.style.display = 'flex';
+    }
+    
+    function cerrarModal() {
+        document.getElementById('modal-detalles').style.display = 'none';
+    }
+
+    function verDatosAcademicos(nombre, universidad, carrera) {
+        const modal = document.getElementById('modal-detalles');
+        const content = document.getElementById('modal-content-area');
+        
+        let html = `
+            <div style="margin-bottom: 25px; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px;">
+                <h3 style="color: #1a2a3a; margin: 0; font-size: 1.1rem;">Datos Académicos de ${nombre}</h3>
+            </div>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr><td style="padding: 12px 0; color: #666; width: 40%; font-weight: 600;">Universidad:</td><td style="padding: 12px 0; color: #333;">${universidad}</td></tr>
+                <tr><td style="padding: 12px 0; color: #666; width: 40%; font-weight: 600;">Área:</td><td style="padding: 12px 0; color: #333;">${carrera}</td></tr>
+            </table>
+        `;
+        
+        content.innerHTML = html;
+        modal.style.display = 'flex';
+    }
+    
+    window.onclick = function(event) {
+        const modal = document.getElementById('modal-detalles');
+        if (event.target == modal) {
+            cerrarModal();
+        }
+    }
+</script>
+{% endblock %}

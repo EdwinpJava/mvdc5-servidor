@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<!-- Quill CSS -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="admin-section" style="padding-top: 120px; background: #f4f7f6; min-height: 100vh; padding-bottom: 80px;">
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h1 style="color: #1a2a3a; font-weight: 800; font-size: 1.8rem;">
+                <i class="fas {% if noticia %}fa-edit{% else %}fa-plus-circle{% endif %}" style="margin-right: 10px; color: #e63946;"></i> 
+                {% if noticia %}Editar Noticia{% else %}Nueva Noticia ORI{% endif %}
+            </h1>
+            <a href="{{ url_for('admin_noticias') }}" style="text-decoration: none; color: #666; font-weight: 600;"><i class="fas fa-arrow-left"></i> Volver</a>
+        </div>
+
+        <div class="form-container">
+            <form action="{% if noticia %}{{ url_for('admin_editar_noticia', id=noticia.id) }}{% else %}{{ url_for('admin_nueva_noticia') }}{% endif %}" method="POST" enctype="multipart/form-data" id="newsForm">
+                
+                <div class="form-group" style="margin-bottom: 25px;">
+                    <label style="font-weight: 700; margin-bottom: 10px; display: block; color: #1a2a3a;">Imagen de Portada (Opcional)</label>
+                    <input type="file" name="imagen_archivo" class="form-control" accept="image/*" style="padding: 10px; border-radius: 10px; border: 1px solid #ddd; width: 100%;">
+                    {% if noticia and noticia.imagen_url %}
+                        <div style="margin-top: 10px;">
+                            <p style="font-size: 0.9rem; color: #666;">Imagen actual:</p>
+                            <img src="{{ noticia.imagen_url }}" alt="Portada actual" style="max-height: 150px; border-radius: 10px; margin-top: 5px;">
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group" style="margin-bottom: 25px;">
+                    <label style="font-weight: 700; margin-bottom: 10px; display: block; color: #1a2a3a;">Contenido de la Noticia</label>
+                    <div id="editor">{% if noticia %}{{ noticia.contenido|safe }}{% endif %}</div>
+                    <input type="hidden" name="contenido" id="contenido_html">
+                </div>
+
+                <div style="text-align: right; margin-top: 40px;">
+                    <button type="submit" class="btn-save">{% if noticia %}ACTUALIZAR NOTICIA{% else %}PUBLICAR NOTICIA{% endif %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- Quill JS -->
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+<!-- Image Resize Module -->
+<script src="https://cdn.jsdelivr.net/npm/quill-image-resize-module@3.0.0/image-resize.min.js"></script>
+<script>
+    // Registrar el módulo de redimensionamiento
+    Quill.register('modules/imageResize', ImageResize.default);
+
+    var quill = new Quill('#editor', {
+        theme: 'snow',
+        placeholder: 'Escribe tu noticia aquí... Puedes insertar imágenes, videos y enlaces.',
+        modules: {
+            toolbar: [
+                [{ 'header': [1, 2, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'align': [] }], // Dropdown de alineación
+                ['link', 'image', 'video'],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                [{ 'color': [] }, { 'background': [] }],
+                ['clean']
+            ],
+            imageResize: {
+                displaySize: true, // Muestra el tamaño de la imagen mientras se redimensiona
+                modules: [ 'Resize', 'DisplaySize', 'Toolbar' ] // Habilita redimensionar y la barra de herramientas (alineación)
+            }
+        }
+    });
+
+    // Antes de enviar el formulario, pasar el HTML de Quill al input hidden
+    document.getElementById('newsForm').onsubmit = function() {
+        var html = quill.root.innerHTML;
+        document.getElementById('contenido_html').value = html;
+    };
+</script>
+{% endblock %}

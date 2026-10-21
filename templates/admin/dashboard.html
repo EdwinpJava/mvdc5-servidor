@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block content %}
+<script>
+    // Configurar clase en el body antes de que renderice para evitar parpadeos
+    (function() {
+        let isDoc = localStorage.getItem('activeTabDashboard') === 'docentes';
+        if (isDoc) {
+            document.documentElement.classList.add('show-docentes-dash');
+        }
+    })();
+</script>
+
+<style>
+    /* Estilos por defecto (Estudiantes) */
+    #table-estudiantes { display: block; }
+    #table-docentes { display: none; }
+    #custom-toggle { background-color: #333; }
+    #toggle-circle { transform: translateX(0); }
+    #label-estudiantes { color: #1a2a3a; }
+    #label-docentes { color: #aaa; }
+
+    /* Estilos cuando la clase show-docentes-dash está activa (Docentes) */
+    html.show-docentes-dash #table-estudiantes { display: none !important; }
+    html.show-docentes-dash #table-docentes { display: block !important; }
+    html.show-docentes-dash #custom-toggle { background-color: #f07167 !important; }
+    html.show-docentes-dash #toggle-circle { transform: translateX(24px) !important; }
+    html.show-docentes-dash #label-estudiantes { color: #aaa !important; }
+    html.show-docentes-dash #label-docentes { color: #e63946 !important; }
+    
+    /* Prevenir transiciones en la carga inicial */
+    html.preload-dash #custom-toggle,
+    html.preload-dash #toggle-circle,
+    html.preload-dash #label-estudiantes,
+    html.preload-dash #label-docentes {
+        transition: none !important;
+    }
+</style>
+<script>document.documentElement.classList.add('preload-dash');</script>
+
+<section class="admin-section" style="padding-top: 120px; background: #f4f7f6; min-height: 120vh; padding-bottom: 50px;">
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; flex-wrap: wrap; gap: 15px;">
+            <h1 style="color: #1a2a3a; font-weight: 800;">Panel de Administración</h1>
+            <div class="admin-nav" style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <a href="{{ url_for('chat_estrategico') }}" class="btn-admin-nav" style="background: #1a2a3a; color: white;"><i class="fas fa-comments"></i> Chat Estratégico</a>
+                <a href="{{ url_for('coordinador_postulaciones') }}" class="btn-admin-nav">Gestionar Postulaciones</a>
+                <a href="{{ url_for('admin_programas') }}" class="btn-admin-nav">Gestionar Programas</a>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; margin-bottom: 50px;">
+            <div style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); text-align: center; border-bottom: 5px solid #e63946;">
+                <i class="fas fa-users" style="font-size: 2.5rem; color: #e63946; margin-bottom: 15px;"></i>
+                <h3 style="font-size: 2.5rem; margin: 0; color: #1a2a3a;">{{ total_usuarios }}</h3>
+                <p style="color: #777; margin: 0;">Usuarios Registrados</p>
+            </div>
+            <div style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); text-align: center; border-bottom: 5px solid #2ecc71;">
+                <i class="fas fa-briefcase" style="font-size: 2.5rem; color: #2ecc71; margin-bottom: 15px;"></i>
+                <h3 style="font-size: 2.5rem; margin: 0; color: #1a2a3a;">{{ total_programas }}</h3>
+                <p style="color: #777; margin: 0;">Programas Activos</p>
+            </div>
+            <div style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); text-align: center; border-bottom: 5px solid #f1c40f;">
+                <i class="fas fa-file-alt" style="font-size: 2.5rem; color: #f1c40f; margin-bottom: 15px;"></i>
+                <h3 style="font-size: 2.5rem; margin: 0; color: #1a2a3a;">{{ total_postulaciones }}</h3>
+                <p style="color: #777; margin: 0;">Postulaciones Totales</p>
+            </div>
+        </div>
+
+        <!-- Toggle Switch en línea con el título -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px;">
+            <h2 style="color: #1a2a3a; font-weight: 800; font-size: 1.5rem; margin: 0;"><i class="fas fa-history" style="margin-right: 10px; color: #e63946;"></i> Actividad Reciente</h2>
+            
+            <div style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-left: auto; margin-right: 20px;">
+                <span id="label-estudiantes" style="font-weight: bold; font-size: 1rem; transition: color 0.3s;"><i class="fas fa-user-graduate"></i> Estudiantes</span>
+                
+                <div id="custom-toggle" onclick="toggleTables()" style="width: 50px; height: 26px; border-radius: 26px; position: relative; cursor: pointer; transition: background-color 0.3s; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);">
+                    <div id="toggle-circle" style="width: 20px; height: 20px; background-color: white; border-radius: 50%; position: absolute; top: 3px; left: 3px; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 2px 5px rgba(0,0,0,0.2);"></div>
+                </div>
+                
+                <span id="label-docentes" style="font-weight: bold; font-size: 1rem; transition: color 0.3s;"><i class="fas fa-chalkboard-teacher"></i> Docentes/Admin</span>
+            </div>
+        </div>
+
+        <!-- Recent Activity - Students -->
+        <div id="table-estudiantes" style="background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 30px;">
+            <div style="background: #1a2a3a; color: white; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="font-size: 1.2rem; margin: 0;"><i class="fas fa-user-graduate" style="margin-right: 10px;"></i> Postulaciones Recientes - Estudiantes</h2>
+                <a href="{{ url_for('coordinador_postulaciones') }}" style="color: white; font-size: 0.9rem;">Ver todas</a>
+            </div>
+            <div style="padding: 0; overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
+                    <thead>
+                        <tr style="background: #f8f9fa; border-bottom: 1px solid #eee;">
+                            <th style="padding: 15px 30px; text-align: left; color: #555;">Estudiante</th>
+                            <th style="padding: 15px 30px; text-align: left; color: #555;">Programa</th>
+                            <th style="padding: 15px 30px; text-align: left; color: #555;">Fecha</th>
+                            <th style="padding: 15px 30px; text-align: left; color: #555;">Estado</th>
+                            <th style="padding: 15px 30px; text-align: left; color: #555;">Carta de Aprobación</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for postu in postulaciones_estudiantes %}
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 15px 30px; color: #333;"><strong>{{ postu.estudiante.nombre }}</strong><br><small>{{ postu.estudiante.email }}</small></td>
+                            <td style="padding: 15px 30px; color: #333;">{{ postu.programa.nombre }}</td>
+                            <td style="padding: 15px 30px; color: #777;">{{ postu.fecha_postulacion.strftime('%d/%m/%Y') }}</td>
+                            <td style="padding: 15px 30px;">
+                                <span class="badge-pill" style="
+                                    background: {% if postu.estado == 'pendiente_ori' %}#f1c40f
+                                    {% elif postu.estado == 'espera_ori' %}#e67e22
+                                    {% elif postu.estado == 'candidato' %}#3498db
+                                    {% elif postu.estado in ['aprobado_jefe', 'aprobado_ori'] %}#2ecc71
+                                    {% else %}#e74c3c{% endif %}; 
+                                    color: white; padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; display: inline-block; white-space: nowrap; text-align: center; min-width: 80px;">
+                                    {{ postu.estado.replace('_ori', '').replace('_jefe', '').replace('_', ' ').upper() }}
+                                </span>
+                            </td>
+                            <td style="padding: 15px 30px;">
+                                {% if postu.carta_jefe_url %}
+                                <a href="{{ postu.carta_jefe_url }}" target="_blank" style="font-size: 0.8rem; color: #2ecc71; text-decoration: none; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; border: 1px solid #2ecc71; padding: 5px 10px; border-radius: 5px; background: #e8f8f5;">
+                                    <i class="fas fa-file-signature"></i> Ver Carta
+                                </a>
+                                {% else %}
+                                <span style="color: #ccc; font-size: 0.8rem;">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" style="padding: 30px; text-align: center; color: #777;">No hay postulaciones recientes de estudiantes.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Recent Activity - Teachers -->
+        <div id="table-docentes" style="background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); overflow: hidden; display: none;">
+            <div style="background: #2c3e50; color: white; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="font-size: 1.2rem; margin: 0;"><i class="fas fa-chalkboard-teacher" style="margin-right: 10px;"></i> Postulaciones Recientes - Docentes/Admin</h2>
+                <a href="{{ url_for('coordinador_postulaciones') }}" style="color: white; font-size: 0.9rem;">Ver todas</a>
+            </div>
+            <div style="padding: 0; overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
+                    <thead>
+                        <tr style="background: #f8f9fa; border-bottom: 1px solid #eee;">
+                            <th style="padding: 15px 30px; text-align: left; color: #555;">Docente</th>
+                            <th style="padding: 15px 30px; text-align: left; color: #555;">Programa</th>
+                            <th style="padding: 15px 30px; text-align: left; color: #555;">Fecha</th>
+                            <th style="padding: 15px 30px; text-align: left; color: #555;">Estado</th>
+                            <th style="padding: 15px 30px; text-align: left; color: #555;">Carta de Aprobación</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for postu in postulaciones_docentes %}
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 15px 30px; color: #333;"><strong>{{ postu.estudiante.nombre }}</strong><br><small>{{ postu.estudiante.email }}</small></td>
+                            <td style="padding: 15px 30px; color: #333;">{{ postu.programa.nombre }}</td>
+                            <td style="padding: 15px 30px; color: #777;">{{ postu.fecha_postulacion.strftime('%d/%m/%Y') }}</td>
+                            <td style="padding: 15px 30px;">
+                                <span class="badge-pill" style="
+                                    background: {% if postu.estado == 'pendiente_ori' %}#f1c40f
+                                    {% elif postu.estado == 'espera_ori' %}#e67e22
+                                    {% elif postu.estado == 'candidato' %}#3498db
+                                    {% elif postu.estado in ['aprobado_jefe', 'aprobado_ori'] %}#2ecc71
+                                    {% else %}#e74c3c{% endif %}; 
+                                    color: white; padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; display: inline-block; white-space: nowrap; text-align: center; min-width: 80px;">
+                                    {{ postu.estado.replace('_ori', '').replace('_jefe', '').replace('_', ' ').upper() }}
+                                </span>
+                            </td>
+                            <td style="padding: 15px 30px;">
+                                {% if postu.carta_ori_1_url %}
+                                <a href="{{ postu.carta_ori_1_url }}" target="_blank" style="font-size: 0.8rem; color: #2ecc71; text-decoration: none; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; border: 1px solid #2ecc71; padding: 5px 10px; border-radius: 5px; background: #e8f8f5;">
+                                    <i class="fas fa-file-signature"></i> Ver Carta
+                                </a>
+                                {% else %}
+                                <span style="color: #ccc; font-size: 0.8rem;">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" style="padding: 30px; text-align: center; color: #777;">No hay postulaciones recientes de docentes.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+// Obtener el estado inicial de localStorage
+let isDocentes = localStorage.getItem('activeTabDashboard') === 'docentes';
+
+// Función para inicializar las tablas sin transiciones al cargar la página
+function initTables() {
+    // El estado inicial ya se aplicó al <html> en el <head>
+    
+    // Quitar la clase preload después de un pequeño retraso para habilitar transiciones
+    setTimeout(() => {
+        document.documentElement.classList.remove('preload-dash');
+    }, 50);
+}
+
+function toggleTables() {
+    // Alternar el estado
+    isDocentes = !isDocentes;
+    localStorage.setItem('activeTabDashboard', isDocentes ? 'docentes' : 'estudiantes');
+    
+    // Aplicar clase
+    if (isDocentes) {
+        document.documentElement.classList.add('show-docentes-dash');
+    } else {
+        document.documentElement.classList.remove('show-docentes-dash');
+    }
+}
+
+// Inicializar el estado de las tablas al cargar la página
+document.addEventListener('DOMContentLoaded', initTables);
+// También ejecutar inmediatamente para mayor seguridad
+initTables();
+</script>
+{% endblock %}

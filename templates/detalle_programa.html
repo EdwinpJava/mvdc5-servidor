@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="page-header det-page-header">
+    <div class="container">
+        <h1 class="det-page-header-title">{{ programa.nombre }}</h1>
+        <span class="badge-pill" style="background: #e63946; color: white; padding: 10px 30px; border-radius: 30px; font-size: 1rem; font-weight: 700; display: inline-block; max-width: 100%; word-break: break-word; line-height: 1.3;">{{ programa.tipo.upper() }}</span>
+    </div>
+</section>
+
+<section class="section-padding bg-white">
+    <div class="container">
+        <div class="det-programa-grid">
+            <div class="program-details-content">
+                <div style="margin-bottom: 50px;">
+                    <h2 class="det-desc-title" data-i18n="det-desc-title">Descripción del Programa</h2>
+                    <p style="color: #444; font-size: 1.1rem; line-height: 2; margin-bottom: 30px;">{{ programa.descripcion }}</p>
+                </div>
+
+                <div class="det-requisitos-box">
+                    <h2 class="det-section-title"><i class="fas fa-list-check" style="color: #e63946; margin-right: 15px;"></i><span data-i18n="det-req-title">Requisitos de Postulación</span></h2>
+                    <div style="color: #444; font-size: 1.1rem; line-height: 1.8;">
+                        {{ programa.requisitos }}
+                    </div>
+                </div>
+
+                {% if programa.fecha_fin %}
+                        <div style="background: {% if programa.fecha_fin < now %}#fee2e2{% else %}#f0fdf4{% endif %}; padding: 15px; border-radius: 12px; margin-bottom: 25px; display: flex; align-items: center; gap: 15px; border: 1px solid {% if programa.fecha_fin < now %}#fecaca{% else %}#dcfce7{% endif %};">
+                            <i class="fas fa-clock" style="font-size: 1.5rem; color: {% if programa.fecha_fin < now %}#ef4444{% else %}#22c55e{% endif %};"></i>
+                            <div>
+                                <strong style="display: block; color: #1a2a3a; font-size: 0.9rem;">
+                                    {% if programa.fecha_fin < now %}CONVOCATORIA CERRADA{% else %}FECHA LÍMITE DE POSTULACIÓN{% endif %}
+                                </strong>
+                                <span style="color: #555; font-size: 0.85rem;">{{ programa.fecha_fin.strftime('%d de %B, %Y - %H:%M') }}</span>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    {% if programa.fecha_fin and programa.fecha_fin < now %}
+                        <div style="text-align: center; padding: 60px 40px; background: #fff; border: 1px solid #eee; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+                            <i class="fas fa-calendar-times" style="font-size: 3rem; color: #ef4444; margin-bottom: 20px;"></i>
+                            <h3 style="color: #1a2a3a; margin-bottom: 10px;">El periodo de postulación ha finalizado</h3>
+                            <p style="color: #666;">Ya no se aceptan más solicitudes para este programa. Te invitamos a estar pendiente de futuras convocatorias.</p>
+                            <a href="{{ url_for('programas') }}" class="btn-primary" style="display: inline-block; margin-top: 25px; text-decoration: none;">VER OTRAS CONVOCATORIAS</a>
+                        </div>
+                    {% elif session.get('user_id') %}
+                    {% if ya_postulado and not editando_postulacion %}
+                        <div style="background: #d4edda; color: #155724; padding: 30px; border-radius: 15px; text-align: center; border: 1px solid #c3e6cb;">
+                            <i class="fas fa-check-circle" style="font-size: 2rem; margin-bottom: 15px;"></i>
+                            <h3 style="margin-bottom: 10px;" data-i18n="det-already-title">¡Ya estás postulado!</h3>
+                            <p data-i18n="det-already-desc">Tu postulación está siendo revisada por el equipo académico. Puedes ver el estado en tu perfil.</p>
+                            <a href="{{ url_for('perfil') }}" class="btn-primary" style="margin-top: 20px;" data-i18n="det-btn-profile">Ir a mi perfil</a>
+                        </div>
+                    {% else %}
+                        <div class="det-postulacion-box">
+                            <h3 style="margin-bottom: 25px; color: #1a2a3a; text-align: center;" data-i18n="det-cta-title">{% if editando_postulacion %}Actualizar Postulación{% else %}Formulario de Postulación{% endif %}</h3>
+                            
+                            {% if editando_postulacion and (editando_postulacion.comentarios or editando_postulacion.observacion_jefe) %}
+                            <div style="background: #fff3cd; color: #856404; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #ffeeba;">
+                                <strong><i class="fas fa-exclamation-triangle"></i> Observaciones a corregir:</strong><br>
+                                {% if editando_postulacion.comentarios %}
+                                    <p style="margin-top: 5px; margin-bottom: 5px;"><b>ORI:</b> {{ editando_postulacion.comentarios }}</p>
+                                {% endif %}
+                                {% if editando_postulacion.observacion_jefe %}
+                                    <p style="margin-top: 5px; margin-bottom: 0;"><b>Coordinador:</b> {{ editando_postulacion.observacion_jefe }}</p>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                            
+                            <form action="{% if editando_postulacion %}{{ url_for('editar_postulacion', id=editando_postulacion.id) }}{% else %}{{ url_for('postular', id=programa.id) }}{% endif %}" method="POST" enctype="multipart/form-data">
+                                <div id="dynamic-form-container">
+                                    {% if programa.formulario_json %}
+                                        <script>
+                                            document.addEventListener('DOMContentLoaded', function() {
+                                                const container = document.getElementById('dynamic-form-container');
+                                                const fields = JSON.parse('{{ programa.formulario_json | safe }}');
+                                                const existingData = {% if editando_postulacion %}{{ editando_postulacion.datos_formulario_json | safe }}{% else %}{}{% endif %};
+                                                
+                                                fields.forEach(field => {
+                                                    const fieldWrapper = document.createElement('div');
+                                                    fieldWrapper.className = 'form-group';
+                                                    
+                                                    const label = document.createElement('label');
+                                                    label.innerHTML = field.label + (field.required ? ' <span style="color: #e63946;">*</span>' : '');
+                                                    fieldWrapper.appendChild(label);
+                                                    
+                                                    if (field.placeholder) {
+                                                        const helpText = document.createElement('small');
+                                                        helpText.textContent = field.placeholder;
+                                                        helpText.style.color = '#777';
+                                                        helpText.style.marginBottom = '8px';
+                                                        helpText.style.display = 'block';
+                                                        helpText.style.textAlign = 'center';
+                                                        fieldWrapper.appendChild(helpText);
+                                                    }
+                                                    
+                                                    let input;
+                                                    if (field.type === 'textarea') {
+                                                        input = document.createElement('textarea');
+                                                        input.rows = 4;
+                                                    } else if (field.type === 'select') {
+                                                        input = document.createElement('select');
+                                                        const options = field.options.split(',').map(o => o.trim());
+                                                        options.forEach(opt => {
+                                                            const option = document.createElement('option');
+                                                            option.value = opt;
+                                                            option.textContent = opt;
+                                                            input.appendChild(option);
+                                                        });
+                                                    } else if (field.type === 'radio' || field.type === 'checkbox') {
+                                                        const optionsContainer = document.createElement('div');
+                                                        optionsContainer.className = 'role-selector'; // Reutilizamos el estilo de selector
+                                                        optionsContainer.style.background = 'transparent';
+                                                        optionsContainer.style.padding = '0';
+                                                        
+                                                        const options = field.options.split(',').map(o => o.trim());
+                                                        options.forEach(opt => {
+                                                            const optWrapper = document.createElement('label');
+                                                            optWrapper.style.flex = '1';
+                                                            
+                                                            const optInput = document.createElement('input');
+                                                            optInput.type = field.type;
+                                                            optInput.name = `field_${field.id}`;
+                                                            optInput.value = opt;
+                                                            optInput.style.display = 'none';
+                                                            
+                                                            if (field.required) {
+                                                                optInput.required = true;
+                                                                if (field.type === 'checkbox') {
+                                                                    optInput.addEventListener('change', function() {
+                                                                        const checkboxes = document.querySelectorAll(`input[name="${optInput.name}"]`);
+                                                                        const isChecked = Array.from(checkboxes).some(cb => cb.checked);
+                                                                        checkboxes.forEach(cb => cb.required = !isChecked);
+                                                                    });
+                                                                }
+                                                            }
+                                                            
+                                                            const span = document.createElement('span');
+                                                            span.textContent = opt;
+                                                            
+                                                            if (existingData[field.label] === opt) {
+                                                                optInput.checked = true;
+                                                                optWrapper.style.background = 'var(--color-principal)';
+                                                                optWrapper.style.color = 'white';
+                                                                optWrapper.style.borderColor = 'var(--color-principal)';
+                                                            }
+
+                                                            optWrapper.appendChild(optInput);
+                                                            optWrapper.appendChild(span);
+                                                            optionsContainer.appendChild(optWrapper);
+                                                            
+                                                            // Efecto visual para radio/checkbox
+                                                            optInput.addEventListener('change', () => {
+                                                                if (field.type === 'radio') {
+                                                                    optionsContainer.querySelectorAll('label').forEach(l => {
+                                                                        l.style.background = '#fff';
+                                                                        l.style.color = '#888';
+                                                                        l.style.borderColor = '#e1e4e8';
+                                                                    });
+                                                                }
+                                                                if (optInput.checked) {
+                                                                    optWrapper.style.background = 'var(--color-principal)';
+                                                                    optWrapper.style.color = 'white';
+                                                                    optWrapper.style.borderColor = 'var(--color-principal)';
+                                                                } else {
+                                                                    optWrapper.style.background = '#fff';
+                                                                    optWrapper.style.color = '#888';
+                                                                    optWrapper.style.borderColor = '#e1e4e8';
+                                                                }
+                                                            });
+                                                        });
+                                                        fieldWrapper.appendChild(optionsContainer);
+                                                        container.appendChild(fieldWrapper);
+                                                        return;
+                                                    } else if (field.type === 'image') {
+                                                        const imageContainer = document.createElement('div');
+                                                        imageContainer.style.display = 'flex';
+                                                        imageContainer.style.flexDirection = 'column';
+                                                        imageContainer.style.gap = '15px';
+                                                        
+                                                        const method = field.options || 'both';
+                                                        
+                                                        if (method === 'both' || method === 'file') {
+                                                            const fileInput = document.createElement('input');
+                                                            fileInput.type = 'file';
+                                                            fileInput.name = `field_${field.id}_file`;
+                                                            fileInput.accept = 'image/*';
+                                                            fileInput.className = 'form-control';
+                                                            if (field.required && method === 'file') fileInput.required = true;
+                                                            
+                                                            const fileLabel = document.createElement('small');
+                                                            fileLabel.textContent = 'Subir archivo de imagen:';
+                                                            fileLabel.style.display = 'block';
+                                                            fileLabel.style.textAlign = 'center';
+                                                            
+                                                            imageContainer.appendChild(fileLabel);
+                                                            imageContainer.appendChild(fileInput);
+                                                        }
+                                                        
+                                                        if (method === 'both') {
+                                                            const orText = document.createElement('div');
+                                                            orText.textContent = '— O —';
+                                                            orText.style.textAlign = 'center';
+                                                            orText.style.fontSize = '0.8rem';
+                                                            orText.style.color = '#999';
+                                                            imageContainer.appendChild(orText);
+                                                        }
+                                                        
+                                                        if (method === 'both' || method === 'url') {
+                                                            const urlInput = document.createElement('input');
+                                                            urlInput.type = 'text';
+                                                            urlInput.name = `field_${field.id}_url`;
+                                                            urlInput.placeholder = 'https://ejemplo.com/imagen.jpg';
+                                                            urlInput.className = 'form-control';
+                                                            if (field.required && method === 'url') urlInput.required = true;
+                                                            if (existingData[field.label] && existingData[field.label].startsWith('http')) {
+                                                                urlInput.value = existingData[field.label];
+                                                            }
+                                                            
+                                                            const urlLabel = document.createElement('small');
+                                                            urlLabel.textContent = 'O ingresar URL de la imagen:';
+                                                            urlLabel.style.display = 'block';
+                                                            urlLabel.style.textAlign = 'center';
+                                                            
+                                                            imageContainer.appendChild(urlLabel);
+                                                            imageContainer.appendChild(urlInput);
+                                                        }
+                                                        
+                                                        fieldWrapper.appendChild(imageContainer);
+                                                        container.appendChild(fieldWrapper);
+                                                        return;
+                                                    } else {
+                                                        input = document.createElement('input');
+                                                        input.type = field.type;
+                                                    }
+                                                    
+                                                    if (input) {
+                                                        input.name = `field_${field.id}`;
+                                                        input.className = 'form-control';
+                                                        if (field.placeholder) input.placeholder = field.placeholder;
+                                                        if (field.required) input.required = true;
+                                                        
+                                                        if (field.type === 'file') {
+                                                            input.accept = '.pdf,.doc,.docx,.xls,.xlsx,.zip,image/*';
+                                                        }
+                                                        
+                                                        fieldWrapper.appendChild(input);
+                                                    }
+                                                    
+                                                    container.appendChild(fieldWrapper);
+                                                });
+                                            });
+                                        </script>
+                                    {% else %}
+                                        <p style="text-align: center; color: #777; margin-bottom: 30px;">Este programa no requiere información adicional.</p>
+                                    {% endif %}
+                                </div>
+                                <div style="text-align: center; margin-top: 40px;">
+                                    <button type="submit" class="btn-primary" style="padding: 15px 50px; font-size: 1.1rem; font-weight: 700;" data-i18n="det-btn-apply">ENVIAR POSTULACIÓN</button>
+                                    <p style="margin-top: 20px; font-size: 0.9rem; color: #777;" data-i18n="det-cta-note">Al hacer clic en enviar, confirmas que toda la información proporcionada es verídica.</p>
+                                </div>
+                            </form>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div style="background: #fff3cd; color: #856404; padding: 30px; border-radius: 15px; text-align: center; border: 1px solid #ffeeba;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 15px;"></i>
+                        <h3 style="margin-bottom: 10px;" data-i18n="det-login-title">Inicia Sesión para Postularte</h3>
+                        <p data-i18n="det-login-desc">Para poder aplicar a este programa debes ser un usuario registrado.</p>
+                        <button class="btn-primary" style="margin-top: 20px;" onclick="document.getElementById('openModalBtn').click()" data-i18n="det-btn-login">Iniciar Sesión / Registrarse</button>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="program-sidebar">
+                <div style="position: sticky; top: 120px;">
+                    <img src="{{ programa.imagen_url }}" alt="{{ programa.nombre }}" style="width: 100%; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 30px;">
+                    
+                    <div style="background: white; padding: 30px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 1px solid #eee;">
+                        <h4 style="margin-bottom: 20px; color: #1a2a3a; font-size: 1.2rem; border-bottom: 2px solid #e63946; padding-bottom: 10px; display: inline-block;" data-i18n="det-info-title">Información Clave</h4>
+                        <ul style="list-style: none; padding: 0; margin: 0;">
+                            <li style="margin-bottom: 15px; display: flex; align-items: center; color: #555;">
+                                <i class="fas fa-calendar-alt" style="width: 30px; color: #e63946;"></i> 
+                                <span data-i18n="det-info-open">Apertura: Convocatoria 2026</span>
+                            </li>
+                            <li style="margin-bottom: 15px; display: flex; align-items: center; color: #555;">
+                                <i class="fas fa-tag" style="width: 30px; color: #e63946;"></i> 
+                                <span data-i18n="det-info-type">Tipo</span>: {{ programa.tipo }}
+                            </li>
+                            <li style="margin-bottom: 0; display: flex; align-items: center; color: #555;">
+                                <i class="fas {% if programa.dirigido_a == 'movilidad docentes' %}fa-chalkboard-teacher{% else %}fa-user-graduate{% endif %}" style="width: 30px; color: #e63946;"></i> 
+                                <span data-i18n="det-info-target">Dirigido a: {{ programa.dirigido_a|title }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

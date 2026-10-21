@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='recuperar.css') }}">
+{% endblock %}
+
+{% block content %}
+<div style="height: 100px; background: #f4f6f9;"></div>
+
+<div class="section-padding" style="background: #f4f6f9; min-height: 80vh;">
+    <div class="container">
+        <div class="recover-layout">
+            
+            <div class="sidebar-login reveal">
+                <div class="sidebar-header">
+                    <i class="fas fa-lock" style="margin-right: 5px;"></i> <span data-i18n="rec-sidebar-title">ACCESO SEGURO</span>
+                </div>
+                <div class="sidebar-body">
+                    <form action="{{ url_for('login') }}" method="POST">
+                        <div style="margin-bottom: 15px;">
+                            <label style="font-size: 0.75rem; font-weight: 700; color: #555; text-transform: uppercase;" data-i18n="rec-label-user">Usuario / Email</label>
+                            <input type="text" name="email" class="mini-input" placeholder="ejemplo@correo.com" data-i18n-placeholder="rec-ph-user">
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label style="font-size: 0.75rem; font-weight: 700; color: #555; text-transform: uppercase;" data-i18n="rec-label-pass">Contraseña</label>
+                            <input type="password" name="password" class="mini-input" placeholder="••••••••">
+                        </div>
+                        
+                        <button type="submit" class="btn-mini" data-i18n="rec-btn-login">INGRESAR AL SISTEMA</button>
+                    </form>
+                    <div style="text-align: center; margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px;">
+                        <a href="#" style="font-size: 0.75rem; color: #888; text-decoration: none;" data-i18n="rec-link-forgot">¿Olvidó su contraseña?</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="main-recover-area reveal delay-1">
+                <div class="recover-intro">
+                    <h2 data-i18n="rec-main-title">Gestión de Credenciales</h2>
+                    <p data-i18n="rec-main-desc">Sistema automatizado para la recuperación de acceso. Por favor, ingrese su correo electrónico o nombre de usuario para restablecer su contraseña de forma segura.</p>
+                </div>
+
+                <div class="recover-box">
+                    <div class="recover-header" data-i18n="rec-box-title">Formulario de Solicitud</div>
+                    
+                    {% if success_message %}
+                    <div class="success-box" style="background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; padding: 20px; border-radius: 5px; margin-bottom: 20px; text-align: center;">
+                        <i class="fas fa-check-circle" style="font-size: 2rem; margin-bottom: 10px; color: #28a745;"></i>
+                        <h4 style="margin-bottom: 10px;">¡Solicitud Procesada!</h4>
+                        <p style="margin: 0;">{{ success_message }}</p>
+                        <a href="{{ url_for('inicio') }}" class="btn-submit" style="display: inline-block; margin-top: 15px; text-decoration: none; text-align: center; width: auto; padding: 10px 20px;">
+                            <i class="fas fa-home"></i> VOLVER AL INICIO
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="note-box">
+                        <i class="fas fa-info-circle"></i>
+                        <p data-i18n="rec-note"><strong>Nota:</strong> Se generará una contraseña de acceso inmediato que será enviada a su correo.</p>
+                    </div>
+
+                    <div class="method-selector">
+                        <label class="method-label" data-i18n="rec-search-title">Elija su método de recuperación:</label>
+                        <div class="tabs-container">
+                            <button type="button" class="tab-btn active" id="tab-email" onclick="toggleSearchMethod('email')">
+                                <i class="fas fa-envelope"></i> <span data-i18n="rec-opt-email">Por Correo Electrónico</span>
+                            </button>
+                            <button type="button" class="tab-btn" id="tab-username" onclick="toggleSearchMethod('username')">
+                                <i class="fas fa-user"></i> <span data-i18n="rec-opt-user">Por Nombre de Usuario</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-wrapper">
+                        <!-- Formulario para Email -->
+                        <form id="form-email" action="{{ url_for('recuperar_datos') }}" method="POST" class="recovery-form active">
+                            <div class="input-group">
+                                <label data-i18n="rec-label-email">Correo Electrónico Registrado:</label>
+                                <div class="input-with-icon">
+                                    <i class="fas fa-envelope"></i>
+                                    <input type="email" name="email_recuperar" placeholder="ej. usuario@correo.com" required data-i18n-placeholder="rec-ph-email">
+                                </div>
+                            </div>
+                            
+                            <div class="input-group" style="margin-top: 15px;">
+                                <label>Validación de Seguridad (Captcha):</label>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <span style="background: #eee; padding: 10px 15px; border-radius: 4px; font-weight: bold; border: 1px solid #ccc; white-space: nowrap;">
+                                        {{ captcha_text }}
+                                    </span>
+                                    <input type="number" name="captcha_answer" placeholder="Respuesta" required style="width: 100px; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn-submit" style="margin-top: 15px;">
+                                <i class="fas fa-paper-plane"></i> <span data-i18n="rec-btn-request">SOLICITAR CONTRASEÑA</span>
+                            </button>
+                        </form>
+
+                        <!-- Formulario para Usuario -->
+                        <form id="form-username" action="{{ url_for('recuperar_datos') }}" method="POST" class="recovery-form">
+                            <div class="input-group">
+                                <label data-i18n="rec-label-username">Nombre de Usuario Registrado:</label>
+                                <div class="input-with-icon">
+                                    <i class="fas fa-user"></i>
+                                    <input type="text" name="nombre_recuperar" placeholder="ej. Juan Perez" data-i18n-placeholder="rec-ph-username">
+                                </div>
+                            </div>
+                            
+                            <div class="input-group" style="margin-top: 15px;">
+                                <label>Validación de Seguridad (Captcha):</label>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <span style="background: #eee; padding: 10px 15px; border-radius: 4px; font-weight: bold; border: 1px solid #ccc; white-space: nowrap;">
+                                        {{ captcha_text }}
+                                    </span>
+                                    <input type="number" name="captcha_answer" placeholder="Respuesta" required style="width: 100px; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn-submit" style="margin-top: 15px;">
+                                <i class="fas fa-paper-plane"></i> <span data-i18n="rec-btn-request">SOLICITAR CONTRASEÑA</span>
+                            </button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleSearchMethod(method) {
+    const formEmail = document.getElementById('form-email');
+    const formUsername = document.getElementById('form-username');
+    const tabEmail = document.getElementById('tab-email');
+    const tabUsername = document.getElementById('tab-username');
+    
+    const inputEmail = formEmail.querySelector('input');
+    const inputUsername = formUsername.querySelector('input');
+
+    if (method === 'email') {
+        formEmail.classList.add('active');
+        formUsername.classList.remove('active');
+        tabEmail.classList.add('active');
+        tabUsername.classList.remove('active');
+        
+        inputEmail.required = true;
+        inputUsername.required = false;
+    } else {
+        formEmail.classList.remove('active');
+        formUsername.classList.add('active');
+        tabEmail.classList.remove('active');
+        tabUsername.classList.add('active');
+        
+        inputEmail.required = false;
+        inputUsername.required = true;
+    }
+}
+</script>
+{% endblock %}
